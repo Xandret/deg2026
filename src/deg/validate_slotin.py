@@ -77,6 +77,7 @@ def main(argv=None):
     ap.add_argument("--checks", default="A,B,C,D,E,F", help="какие проверки выполнить (для слабых машин — по частям)")
     ap.add_argument("--tmp", type=Path, default=None)
     ap.add_argument("--partitions", type=int, default=1, help="делить сравнение на N частей по contract_id")
+    ap.add_argument("--tag", default="", help="суффикс файла отчёта, напр. 2025")
     a = ap.parse_args(argv)
 
     sdir = a.slotin_dir or ensure_slotin_csv(config.EXTERNAL / "slotin")
@@ -86,21 +87,24 @@ def main(argv=None):
         con.execute(f"SET temp_directory='{a.tmp.as_posix()}'")
     checks = set(a.checks.split(","))
     have = {r[0] for r in con.execute("SELECT table_name FROM duckdb_tables()").fetchall()}
-    for t in ("elections", "results", "ballots", "votes", "voter_list_events"):
+    legacy = not (sdir / "voter_list_events.csv").exists() and (sdir / "uiks.csv").exists()
+    for t in ("elections", "results", "ballots", "votes", "uiks" if legacy else "voter_list_events"):
         if f"s_{t}" in have:
             continue                                   # уже загружено прошлым запуском
         con.execute(f"CREATE TABLE s_{t} AS SELECT * FROM read_csv_auto('{(sdir / (t + '.csv')).as_posix()}', header=true)")
     q = lambda sql: con.execute(sql).fetchall()
-    out = config.DERIVED / "validation_slotin.json"
+    out = config.DERIVED / (f"validation_slotin_{a.tag}.json" if a.tag else "validation_slotin.json")
     rep = json.loads(out.read_text()) if out.exists() else {}
 
     if "A" in checks: rep["A_totals"] = {
         "ballots": {"ours": q("SELECT count(*) FROM ballots")[0][0], "slotin": q("SELECT count(*) FROM s_ballots")[0][0]},
         "votes": {"ours": q("SELECT count(*) FROM votes")[0][0], "slotin": q("SELECT count(*) FROM s_votes")[0][0]},
         "initial_sum": {"ours": q("SELECT sum(n) FROM list_events WHERE op='addVotersList'")[0][0],
-                        "slotin": q("SELECT sum(count) FROM s_voter_list_events WHERE type='initial'")[0][0]},
+                        "slotin": q("SELECT sum(initial_voters) FROM s_uiks" if legacy else
+                                    "SELECT sum(count) FROM s_voter_list_events WHERE type='initial'")[0][0]},
         "remove_sum": {"ours": q("SELECT sum(n) FROM list_events WHERE op='removeFromVotersList'")[0][0],
-                       "slotin": q("SELECT sum(count) FROM s_voter_list_events WHERE type='remove'")[0][0]},
+                       "slotin": q("SELECT sum(removed_voters) FROM s_uiks" if legacy else
+                                   "SELECT sum(count) FROM s_voter_list_events WHERE type='remove'")[0][0]},
         "contracts": {"ours_created": q("SELECT count(*) FROM contracts")[0][0],
                       "slotin": q("SELECT count(*) FROM s_elections")[0][0]},
     }
@@ -135,6 +139,15 @@ def main(argv=None):
          ["contract_id", "uik", "t"])
     if "C" in checks: diff("SELECT contract_id, ts_msk_s t FROM votes",
          "SELECT contract_id, timestamp::TIMESTAMP t FROM s_votes", "C_votes", ["contract_id", "t"])
+    if "D" in checks and legacy:
+        diff("""SELECT contract_id, uik::BIGINT uik, 'initial' ty, sum(n)::BIGINT c FROM list_events
+                WHERE op='addVotersList' GROUP BY ALL
+                UNION ALL SELECT contract_id, uik::BIGINT, 'remove', sum(n)::BIGINT FROM list_events
+                WHERE op='removeFromVotersList' GROUP BY ALL""",
+             """SELECT contract_id, uik::BIGINT uik, 'initial' ty, initial_voters::BIGINT c FROM s_uiks WHERE initial_voters > 0
+                UNION ALL SELECT contract_id, uik::BIGINT, 'remove', removed_voters::BIGINT FROM s_uiks WHERE removed_voters > 0""",
+             "D_voter_lists", ["contract_id", "uik", "ty", "c"])
+        checks = checks - {"D"}
     if "D" in checks: diff("""SELECT contract_id, uik::BIGINT uik, ts_msk_s t, n::BIGINT c,
                CASE op WHEN 'addVotersList' THEN 'initial' WHEN 'removeFromVotersList' THEN 'remove' ELSE op END ty
             FROM list_events""",

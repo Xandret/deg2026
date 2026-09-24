@@ -93,13 +93,21 @@ def _json_maybe(v):
 def parse_chunk(chunk: Chunk) -> dict[str, list[dict]]:
     raw = chunk.read_bytes()
     data = gzip.decompress(raw) if chunk.gz else raw
+    return parse_data(data, chunk.chain, max(chunk.start, chunk.min_height), chunk.end)
+
+
+def parse_data(data: bytes, chain: str, lo: int, hi: int) -> dict[str, list[dict]]:
+    """Разбор JSONL-блоков (одна строка = один блок) с высотами в [lo, hi]."""
+    class _C:  # совместимость с кодом ниже, который обращается к chunk.chain
+        pass
+    chunk = _C(); chunk.chain = chain
     rows = {t: [] for t in TABLES}
     for line in data.splitlines():
         if not line.strip():
             continue
         b = orjson.loads(line)
         h = int(b["height"])
-        if h < chunk.min_height or h < chunk.start or h > chunk.end:
+        if h < lo or h > hi:
             continue
         bts = int(b["timestamp"])
         txs = b.get("transactions") or []
