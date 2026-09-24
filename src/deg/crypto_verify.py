@@ -121,7 +121,7 @@ def main(argv=None):
                 log.close(); results[name] = p.returncode; del procs[name]
                 tail = (config.LOGS / f"verify-{name}.log").read_text(encoding="utf-8", errors="replace").strip().splitlines()[-1:]
                 print(f"[{(time.time()-t0)/60:5.1f} мин] {name}: код {p.returncode} — {tail[0] if tail else ''}", flush=True)
-    meaning = {0: "проверено", 1: "НАРУШЕНИЕ/ошибка", 2: "неполная проверка"}
+    meaning = {0: "все итоги подтверждены", 1: "есть неподтверждённые голосования — разбор: run.cmd crypto_recheck parse", 2: "проверка не выполнена"}
     summ = {n: {"code": c, "meaning": meaning.get(c, "?")} for n, c in sorted(results.items())}
     (config.DERIVED / "crypto_verify.json").write_text(json.dumps({"mode": "full" if a.full else "results-only",
                                                                   "minutes": round((time.time()-t0)/60, 1),
