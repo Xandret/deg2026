@@ -38,3 +38,7 @@ lock-файлы (`.git\index.lock`). Поэтому все git-команды в
 i9-14900K (24 ядра / 32 потока), 31,7 ГБ RAM, Python 3.12.10, duckdb 1.5.5, pyarrow 25.0.1, pandas 3.0.6.
 Лимит памяти DuckDB по умолчанию — 8 ГБ (свободной RAM при работе браузера и т.п. бывает ~5 ГБ;
 DuckDB сам уходит во временные файлы на диск, если не хватает).
+
+## Криптопроверка: GnuPG для Windows
+Верификатор использует Стрибог из libgcrypt. Установить GnuPG («Simple installer for GnuPG» с https://gnupg.org/download/);
+`deg.crypto_verify` сам найдёт `libgcrypt-20.dll` и перед запуском проверит контрольный пример ГОСТ Р 34.11-2012.
