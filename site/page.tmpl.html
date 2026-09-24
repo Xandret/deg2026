@@ -256,6 +256,21 @@ td:first-child{color:var(--text)}
 #smT tbody tr{cursor:pointer}
 #smT tbody tr:hover td{background:var(--wash)}
 #smT td{font-size:var(--fs-md);padding:8px var(--s3)}
+.tl{margin-top:var(--s5)}
+.tlday{font-size:var(--fs-lg);margin:28px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tlvote{font-size:var(--fs-xs);font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)}
+.tli{display:grid;grid-template-columns:64px minmax(0,1fr);gap:var(--s5);padding:12px 0;border-bottom:1px solid var(--line)}
+.tlt{font-variant-numeric:tabular-nums;font-weight:700;color:var(--text-2);padding-top:2px}
+.tlmeta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:var(--fs-sm);color:var(--text-3);margin-bottom:4px}
+.tlk{display:inline-flex;align-items:center;gap:6px;font-weight:600;color:var(--text-2)}
+.tlk .dot{width:8px;height:8px;border-radius:50%}
+.tli h3{font-size:var(--fs-lg);margin:0 0 4px;line-height:1.35}
+.tli p{font-size:var(--fs-md);margin:0 0 8px}
+.tlc{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:6px}
+.tlct{font-size:var(--fs-sm);color:var(--text-2);flex:1;min-width:200px;padding-top:3px}
+.tll{font-size:var(--fs-sm)}
+.tli.k-data{background:linear-gradient(90deg,var(--wash-2),transparent 60%);border-radius:var(--rad-xs);padding-left:8px}
+@media (max-width:520px){.tli{grid-template-columns:1fr;gap:2px}}
 /* подсказка и приветствие */
 .tip{position:fixed;z-index:50;pointer-events:none;background:var(--panel);color:var(--text);border:1px solid var(--line-2);border-radius:var(--rad-xs);padding:var(--s3) var(--s4);font-size:var(--fs-sm);line-height:1.45;box-shadow:var(--shadow);max-width:260px;opacity:0;transition:opacity .1s}
 .tip .k{color:var(--text-3)}
@@ -283,6 +298,7 @@ td:first-child{color:var(--text)}
       <a href="#about">Что это</a>
       <a href="#regions">Регионы</a>
       <a href="#anomalies">Аномалии</a>
+      <a href="#timeline">Хронология</a>
       <a href="#paper">Результаты</a>
       <a href="#verify">Проверка</a>
     </nav>
@@ -396,6 +412,18 @@ td:first-child{color:var(--text)}
       </div>
     </section>
 
+    <!-- ХРОНОЛОГИЯ -->
+    <section class="view read" id="v-timeline" hidden>
+      <div class="page">
+        <h1>Хронология: что говорили и что видно в данных</h1>
+        <p class="lede">Заявления официальных лиц, СМИ и наблюдателей о ДЭГ с 11 по 24 сентября — рядом с тем, что показывает журнал. У каждого события есть пометка: подтверждается ли оно данными.</p>
+        <div class="tiles" id="tlTiles"></div>
+        <div class="seg scrollseg" role="group" aria-label="Источник" id="tlKinds"></div>
+        <div class="tl" id="tl"></div>
+        <p class="foot">Источники — публичные Telegram-каналы (веб-версия t.me) ЦИК России, Общественной палаты, «Госуслуг», ТАСС, РБК, «Коммерсанта», «Ведомостей» и наблюдателя В. Толстогузова; отобраны вручную из ~5 тыс. постов. Материалы организаций, признанных в РФ нежелательными, не используются. Время — московское; «≈» — время известно приблизительно. Московская система электронного голосования — отдельная, в наших данных её нет.</p>
+      </div>
+    </section>
+
     <!-- ДЭГ И БУМАГА -->
     <section class="view read" id="v-paper" hidden>
       <div class="page" style="max-width:1100px">
@@ -472,6 +500,7 @@ td:first-child{color:var(--text)}
 <script type="application/json" id="geo">__GEO__</script>
 <script type="application/json" id="data">__DATA__</script>
 <script type="application/json" id="resData">__RES__</script>
+<script type="application/json" id="newsData">__NEWS__</script>
 <script>
 (function(){
 "use strict";
@@ -864,8 +893,32 @@ $('steps').innerHTML=[
   const tot=[1,2,3].map(i=>R.reduce((a,r)=>a+r[i],0));const f=v=>v?num(v):'—';
   $('cryptoT').innerHTML=`<thead><tr><th>Как подтверждён итог</th><th>2026</th><th>2024</th><th>2025</th></tr></thead><tbody>${R.map(r=>`<tr><td>${r[0]}</td><td>${f(r[1])}</td><td>${f(r[2])}</td><td>${f(r[3])}</td></tr>`).join('')}</tbody><tfoot><tr><td><b>Итог подтверждён</b></td>${tot.map(v=>`<td><b>${num(v)} из ${num(v)}</b></td>`).join('')}</tr></tfoot>`;})();
 
+// ---------- хронология ----------
+const NEWS=JSON.parse($('newsData').textContent);
+const KINDS={all:'Все',official:'Официально',media:'СМИ',observers:'Наблюдатели',data:'Наши данные',moscow:'Москва'};
+const KCOL={official:'--accent',media:'--text-3',observers:'--serious',data:'--good',moscow:'--nodeg'};
+const VER={match:['Подтверждается данными','--good'],partial:['Частично / не совсем','--warn'],na:['Данными не проверяется','--text-3'],out:['Вне наших данных','--text-3'],data:['Наше наблюдение','--accent']};
+(function(){const c=k=>NEWS.filter(x=>x.check.v===k).length;const claims=NEWS.filter(x=>x.check.v==='match'||x.check.v==='partial').length;
+  $('tlTiles').innerHTML=[[String(NEWS.length),'событий','из официальных источников, СМИ, от наблюдателей и из наших данных'],[`${c('match')} из ${claims}`,'проверяемых заявлений подтверждаются','остальные подтверждаются частично'],[String(c('partial')),'расходятся с данными частично','например, «сбоев не зафиксировано»']]
+   .map(t=>`<div class="tile"><div class="v">${t[0]}</div><div class="l">${t[1]}</div><div class="n">${t[2]}</div></div>`).join('');})();
+let tlKind='all';
+Object.entries(KINDS).forEach(([k,v])=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.setAttribute('aria-pressed',k==='all');
+  b.onclick=()=>{tlKind=k;[...$('tlKinds').children].forEach(x=>x.setAttribute('aria-pressed',x===b));renderTL();};$('tlKinds').appendChild(b);});
+const DOW=['вс','пн','вт','ср','чт','пт','сб'];
+function renderTL(){const items=NEWS.filter(x=>tlKind==='all'||x.kind===tlKind);let html='',day='';
+  items.forEach(x=>{const d=x.dt.slice(0,10);if(d!==day){day=d;const dt=new Date(d+'T12:00:00');const vote=['2026-09-18','2026-09-19','2026-09-20'].includes(d);
+      html+=`<h2 class="tlday">${+d.slice(8)} сентября, ${DOW[dt.getDay()]}${vote?' <span class="tlvote">день голосования</span>':''}</h2>`;}
+    const v=VER[x.check.v];const ext=x.url.startsWith('http');
+    html+=`<article class="tli k-${x.kind}"><div class="tlt">${x.approx?'≈ ':''}${x.dt.slice(11,16)}</div><div class="tlb">
+      <div class="tlmeta"><span class="tlk"><span class="dot" style="background:var(${KCOL[x.kind]})"></span>${KINDS[x.kind]}</span><span class="tls">${esc(x.source)}</span></div>
+      <h3>${esc(x.title)}</h3><p>${esc(x.text)}</p>
+      <div class="tlc"><span class="chip"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(${v[1]})"></span>${v[0]}</span>${x.check.t?`<span class="tlct">${esc(x.check.t)}</span>`:''}</div>
+      <div class="tll"><a href="${esc(x.url)}"${ext?' target="_blank" rel="noopener"':''}>${ext?'Открыть источник ↗':'Подробнее →'}</a>${x.an.filter(a=>!x.url.includes(a)).map(a=>` · <a href="#anomalies/${a}">${a}</a>`).join('')}</div></div></article>`;});
+  $('tl').innerHTML=html||'<p>Нет событий.</p>';}
+renderTL();
+
 // ---------- маршруты ----------
-const VIEWS=['map','about','regions','anomalies','paper','verify'];
+const VIEWS=['map','about','regions','anomalies','timeline','paper','verify'];
 function route(){const h=location.hash.slice(1)||'map';const [v,sub]=h.split('/');const view=VIEWS.includes(v)?v:'map';
   VIEWS.forEach(n=>{$('v-'+n).hidden=n!==view;});
   document.querySelectorAll('.nav a').forEach(a=>a.getAttribute('href')==='#'+view?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));

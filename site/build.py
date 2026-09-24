@@ -1,7 +1,7 @@
 """Сборка страницы сайта: шаблон + geo.json + агрегаты → site/dist/deg2026-site.html.
 
 Запуск из корня репозитория:  .venv\\Scripts\\python.exe site\\build.py
-Перед этим: run.cmd site_data, run.cmd deg_results, run.cmd izbirkom_snapshot. Геометрия: site/geo.py (один раз).
+Перед этим: run.cmd site_data, run.cmd deg_results, run.cmd izbirkom_snapshot; хронология — data/news/timeline.json.
 """
 import json, re, csv, os, sys
 from pathlib import Path
@@ -66,7 +66,7 @@ def results_data(REPO):
 res = results_data(REPO)
 t = open(sys.argv[1] if len(sys.argv) > 1 else 'page.tmpl.html', encoding='utf-8').read()
 j = lambda o: json.dumps(o, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
-t = t.replace('__GEO__', j(geo_out)).replace('__DATA__', j(data)).replace('__RES__', j(res))
+t = t.replace('__GEO__', j(geo_out)).replace('__DATA__', j(data)).replace('__RES__', j(res)).replace('__NEWS__', j(json.load(open(REPO/'data/news/timeline.json', encoding='utf-8'))))
 (HERE/'dist').mkdir(exist_ok=True); open(HERE/'dist'/'deg2026-site.html', 'w', encoding='utf-8').write(t)
 # preview wrapper for local screenshots
 open(HERE/'dist'/'preview.html', 'w', encoding='utf-8').write('<!doctype html><html lang="ru"><head><meta charset="utf-8"></head><body>' + t + '</body></html>')
