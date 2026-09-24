@@ -1,7 +1,8 @@
 @echo off
 rem Перепроверка голосований, которые криптопроверка не подтвердила (docs/tech/08-crypto.md).
 rem 1) дампы только с нужными контрактами, results переставлен в конец блока; 2) верификатор на них;
-rem 3) без испорченных бюллетеней; 4) полная проверка (ZKP) двух голосований, где итог не сошёлся.
+rem 3) без испорченных бюллетеней; 4) полная проверка (ZKP) двух голосований, где итог не сошёлся,
+rem    и она же без бюллетеней, не прошедших ZKP (как их исключила система).
 cd /d "%~dp0\.."
 chcp 65001 >nul
 set PYTHONPATH=src
@@ -13,9 +14,9 @@ set PY=.venv\Scripts\python.exe -m deg.run
 %PY% crypto_recheck extract --src shard-4 --only 6uR4gwW3dPZSAfHgBpSygFdfrNt8c2SyByWcjcZXnMQr --name bad-2026b
 %PY% crypto_recheck extract --src shard-6 --only JAQNfkBZER6YRr7Pgis2q5B265sxujLp7kuT2V6KCbCM --name bad-2026c
 %PY% crypto_recheck verify --src bad-2026a,bad-2026b,bad-2026c --allow-bad-ballots
-%PY% crypto_recheck extract --src shard-3 --only 5vsgikiFmB49XpwzMBHEhyMqEZEbcwgJJQ9ZDKutkC4q --name mismatch-2026
 %PY% crypto_recheck extract --src edg2024 --only Ai7tA69ZGacudLdrZ8Gsnv9geRHsFdPBAbmHY3UCSkKd --name mismatch-2024
 %PY% crypto_recheck verify --src mismatch-2026,mismatch-2024 --full --workers 8
+%PY% crypto_recheck verify --src mismatch-2026,mismatch-2024 --full --allow-bad-ballots --workers 8
 echo.
 echo Готово. Итоги: data\derived\crypto_recheck\*.verify.json
 pause

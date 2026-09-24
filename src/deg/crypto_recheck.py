@@ -99,9 +99,29 @@ def tx_contract_op(outer):
     return cid, op
 
 
+def iter_dump_lines(path):
+    """Тот же порядок чтения, что у верификатора (crypto/stream.py: папка, ZIP с *.json(l) по имени, .gz, файл),
+    но без импорта верификатора — ему нужен libgcrypt уже при импорте."""
+    import zipfile
+    path = Path(path)
+    if path.is_dir():
+        for m in sorted(c for c in path.iterdir() if c.is_file() and c.suffix.lower() in {".json", ".jsonl"}):
+            with m.open("rb") as f:
+                yield from f
+        return
+    if path.suffix.lower() == ".zip":
+        with zipfile.ZipFile(path) as z:
+            for info in sorted((i for i in z.infolist() if not i.is_dir() and Path(i.filename).suffix.lower() in {".json", ".jsonl"}),
+                               key=lambda i: i.filename):
+                with z.open(info) as f:
+                    yield from f
+        return
+    opener = gzip.open if path.suffix.lower() == ".gz" else open
+    with opener(path, "rb") as f:
+        yield from f
+
+
 def extract(src, only=None, name=None):
-    sys.path.insert(0, str(verifier_dir()))
-    from crypto.stream import iter_dump_lines          # тот же читатель дампов, что у верификатора
     want = set(only) if only else targets(src)
     OUT_R.mkdir(parents=True, exist_ok=True)
     name = name or src
@@ -114,8 +134,7 @@ def extract(src, only=None, name=None):
             if not line.strip():
                 continue
             if small:
-                b = line.encode() if isinstance(line, str) else line
-                if not any(p in b for p in pats):
+                if not any(p in line for p in pats):
                     continue
             block = orjson.loads(line)
             keep, tail = [], []
@@ -138,6 +157,9 @@ def extract(src, only=None, name=None):
 def verify(src, allow_bad=False, workers=1, full=False):
     """Запускает _verify_inner отдельным процессом с нужным окружением (как crypto_verify)."""
     import subprocess
+    if not (OUT_R / f"{src}.jsonl.gz").exists():
+        print(f"{src}: нет дампа {OUT_R / (src + '.jsonl.gz')} — сначала extract", flush=True)
+        return 2
     from .crypto_verify import find_gcrypt
     vdir = verifier_dir(); dll = find_gcrypt() if os.name == "nt" else None
     env = dict(os.environ, PYTHONUTF8="1", DEG_VERIFIER_DIR=str(vdir),
