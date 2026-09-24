@@ -83,3 +83,10 @@ Source: GitHub Actions. На бесплатном тарифе Pages работ�
 4. `scripts\build_site.cmd --launch --base-url https://АДРЕС/`, коммит `site/public`.
 5. Выкладка на .ru, затем запуск workflow зеркала.
 6. Проверка: главная, #data, скачивание xlsx/zip, 404, robots.txt, превью в Telegram, телефон.
+
+## Временная ссылка для показа одному человеку
+`scripts\publish_preview.cmd` собирает сайт с пометкой «предварительная версия» в соседнюю папку `..\deg2026-preview`
+(только содержимое `site/public`) и отправляет её в отдельный репозиторий `Xandret/deg2026-preview`; GitHub Pages
+раздаёт его по адресу https://xandret.github.io/deg2026-preview/. Страница закрыта от поисковиков, но открывается
+у любого, у кого есть ссылка, а репозиторий виден в профиле. Убрать ссылку — удалить репозиторий
+(Settings → Delete this repository).

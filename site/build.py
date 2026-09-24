@@ -20,6 +20,8 @@ ap.add_argument('--tmpl', default=str(HERE / 'page.tmpl.html'))
 ap.add_argument('--out', default=str(HERE))
 ap.add_argument('--launch', action='store_true', help='разрешить индексацию (только после согласования с ОП)')
 ap.add_argument('--base-url', default='', help='адрес сайта со слешем на конце, напр. https://deg2026.ru/')
+ap.add_argument('--pub', default='', help='куда собрать публичный сайт (по умолчанию site/public); данные копируются из site/public')
+ap.add_argument('--preview', action='store_true', help='пометка «предварительная версия» в шапке (для показа до запуска)')
 a = ap.parse_args()
 REPO, OUT = Path(a.repo), Path(a.out)
 BASE = a.base_url.rstrip('/') + '/' if a.base_url else ''
@@ -108,6 +110,19 @@ dist = OUT / 'dist'; dist.mkdir(exist_ok=True)
 (dist / 'preview.html').write_text('<!doctype html><html lang="ru"><head><meta charset="utf-8"></head><body>' + t + '</body></html>', encoding='utf-8')
 
 # 2) публичный статический сайт
+if a.preview:
+    assert t.count('<small>открытые данные</small>') == 1
+    t = t.replace('<small>открытые данные</small>', '<small>предварительная версия</small>')
+if a.pub:                                      # отдельная папка (например, для временной ссылки): данные — копия site/public
+    import shutil
+    dst = Path(a.pub); dst.mkdir(parents=True, exist_ok=True)
+    for name in ('data', 'deg2026_open_data.zip', 'og.png'):
+        src = PUB / name
+        if src.is_dir():
+            shutil.copytree(src, dst / name, dirs_exist_ok=True)
+        elif src.exists():
+            shutil.copy2(src, dst / name)
+    PUB = dst
 TITLE = 'ДЭГ-2026 в открытых данных'
 DESC = ('Независимый пересчёт федерального электронного голосования 18–20 сентября 2026 года по открытому журналу '
         'блокчейна: явка по регионам и участкам, итоги по партиям и округам, сравнение с бумагой, криптопроверка, '
