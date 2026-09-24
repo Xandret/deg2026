@@ -4,7 +4,7 @@
     .venv\\Scripts\\python.exe site\\build.py                     # предпросмотр + публичная сборка (закрыта от поисковиков)
     .venv\\Scripts\\python.exe site\\build.py --launch --base-url https://example.ru/   # открытый запуск
 
-Перед этим: run.cmd site_data, deg_results, izbirkom_snapshot, crypto_recheck summary, export_open_data.
+Перед этим: run.cmd site_data, deg_results, all_results, regions_social, monitor, izbirkom_snapshot, crypto_recheck summary, export_open_data.
 Результат:
     site/dist/deg2026-site.html   — страница без <head> (для публикации как Artifact) и preview.html
     site/public/                  — готовый статический сайт: index.html, 404.html, robots.txt, favicon.svg,
@@ -92,7 +92,10 @@ t = open(a.tmpl, encoding='utf-8').read()
 j = lambda o: json.dumps(o, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
 news = {'items': json.load(open(REPO / 'data/news/timeline.json', encoding='utf-8')),
         'sources': json.load(open(REPO / 'data/news/sources.json', encoding='utf-8'))}
-for k, v in (('__GEO__', geo_out), ('__DATA__', data), ('__RES__', res), ('__NEWS__', news)):
+elect = json.load(open(REPO / 'data/derived/site/elections.json', encoding='utf-8'))   # run.cmd all_results
+social = json.load(open(REPO / 'data/derived/site/social.json', encoding='utf-8'))    # run.cmd regions_social
+monitor = json.load(open(REPO / 'data/derived/site/monitor.json', encoding='utf-8'))  # run.cmd monitor
+for k, v in (('__GEO__', geo_out), ('__DATA__', data), ('__RES__', res), ('__NEWS__', news), ('__ELECT__', elect), ('__SOCIAL__', social), ('__MONITOR__', monitor)):
     assert t.count(k) == 1, k
     t = t.replace(k, j(v))
 assert t.count('__FILES__') == 1

@@ -46,11 +46,22 @@ RU = {"region_code": "Код региона", "region": "Регион", "rc": "�
       "list_removed": "Исключено", "valid": "Действительных голосов", "district": "Округ", "mapping": "Привязка к округу",
       "candidate": "Кандидат", "position": "Позиция в бюллетене", "deg_votes": "Голосов в ДЭГ", "protocol": "Протокол (1 — округ, 2 — партсписки)",
       "row": "Строка протокола", "label": "Название строки", "oik": "Всего по ОИК", "deg": "ДЭГ", "paper": "Участки (всего − ДЭГ)",
-      "source": "Источник", "contract_id": "Контракт", "uik_min": "УИК от", "uik_max": "УИК до"}
+      "source": "Источник", "contract_id": "Контракт", "uik_min": "УИК от", "uik_max": "УИК до",
+      "kind": "Тип", "kind_ru": "Тип выборов", "election": "Выборы", "seats": "Мандатов", "candidates": "Кандидатов/партий",
+      "votes": "Принято голосов", "marks": "Отметок в итоге", "names": "Имена опубликованы", "margin_pp": "Отрыв, п. п.",
+      "level": "Уровень", "contracts": "Голосований (контрактов)",
+      "code": "Код региона", "first_hour": "Первый час, %", "uik100": "УИК со 100 %, % от УИК ≥ 50", "removed": "Исключено, %",
+      "unpaired": "Бюллетени без голоса, %", "turnout": "Явка ДЭГ, %", "er": "ЕР в ДЭГ (Госдума), %", "urban": "Городское население, %",
+      "old": "Старше трудоспособного возраста, %", "pop": "Население, тыс.", "unemp": "Безработица, %",
+      "income": "Медианный душевой доход, руб./мес.", "inet": "Пользуются интернетом, %", "inet_daily": "Интернет каждый день, %",
+      "bband": "Широкополосный интернет дома, % д/х", "uptake": "Охват ДЭГ, на 100 жителей",
+      "place1": "1-е место", "place1_votes": "1-е: голосов", "place1_pct": "1-е: %", "place2": "2-е место",
+      "place2_votes": "2-е: голосов", "place2_pct": "2-е: %", "place3": "3-е место", "place3_votes": "3-е: голосов", "place3_pct": "3-е: %"}
 SHEETS = [("regions_2026.csv", "Регионы 2026"), ("regions_dynamics_2024_2026.csv", "Регионы 2024–2026"),
           ("duma_deg_party_list_by_region.csv", "ГД партсписки ДЭГ"), ("duma_deg_single_mandate_by_district.csv", "ГД округа ДЭГ"),
           ("duma_paper_vs_deg_protocol_lines.csv", "ГД бумага и ДЭГ"), ("regions_hourly_2026.csv", "По часам"),
-          ("uiks_2026.csv", "Участки")]
+          ("uiks_2026.csv", "Участки"), ("all_elections_races_2026.csv", "Все выборы (ДЭГ)"),
+          ("regions_social_indicators_2026.csv", "Регионы и Росстат")]
 
 
 def write_xlsx(sheets: dict, desc: dict, path: Path):
@@ -129,6 +140,24 @@ def main():
                       ("izbirkom_snapshot/paper_vs_deg_lines.csv", "duma_paper_vs_deg_protocol_lines.csv")):
         write_csv(pd.read_csv(D / src), name, files, sheets)
 
+    # все выборы (all_results): гонки и строки бюллетеня
+    ar = D / "all_results"
+    races = pd.read_csv(ar / "races.csv")
+    L = races.leaders.map(json.loads)
+    for i in range(3):
+        races[f"place{i + 1}"] = L.map(lambda x: x[i][0] if len(x) > i else None)
+        races[f"place{i + 1}_votes"] = L.map(lambda x: x[i][1] if len(x) > i else None)
+        races[f"place{i + 1}_pct"] = L.map(lambda x: x[i][2] if len(x) > i else None)
+    races = races.drop(columns=["leaders", "race"])
+    write_csv(races, "all_elections_races_2026.csv", files, sheets)
+    ac = pd.read_csv(ar / "contracts.csv")
+    op = pd.read_csv(ar / "options.csv")   # выборы и округ — по contract_id из contracts_2026.csv
+    write_csv(op[["contract_id", "position", "name", "party", "votes"]], "all_elections_ballot_lines_2026.csv", files)
+
+    # регионы × Росстат (regions_social)
+    write_csv(pd.read_csv(D / "regions_social" / "indicators.csv"), "regions_social_indicators_2026.csv", files, sheets)
+    write_csv(pd.read_csv(D / "regions_social" / "correlations.csv"), "regions_social_correlations_2026.csv", files)
+
     dc = pd.read_csv(D / "deg_results" / "duma_contracts.csv")
     pc = pd.read_parquet(D / "portal" / "contracts.parquet")[["contract_id", "election_name", "level", "district_name"]]
     allc = con.sql("""SELECT b.contract_id, mode(b.region_code)::INT region_code, count(*) ballots
@@ -137,6 +166,13 @@ def main():
     allc = allc.merge(votes, on="contract_id", how="left").merge(pc, on="contract_id", how="left") \
                .merge(dc[["contract_id", "kind", "district", "district_how", "tik_pair"]], on="contract_id", how="left")
     allc["on_portal"] = allc.election_name.notna()
+    allc = allc.merge(ac[["contract_id", "kind", "election_name", "district_name"]].rename(
+        columns={"kind": "election_kind", "election_name": "election_name_all", "district_name": "district_all"}), on="contract_id", how="left")
+    allc["election_name"] = allc.election_name.fillna(allc.election_name_all)
+    allc["district_name"] = allc.district_name.fillna(allc.district_all)
+    allc.loc[allc.election_kind.str.startswith("duma", na=False), "level"] = "FEDERAL"
+    allc = allc.drop(columns=["election_name_all", "district_all"]).rename(
+        columns={"kind": "duma_kind", "district": "duma_district", "district_how": "duma_district_how", "tik_pair": "duma_tik_pair"})
     allc.insert(2, "region", allc.region_code.map(names))
     write_csv(allc, "contracts_2026.csv", files)
 
@@ -168,8 +204,12 @@ def main():
             "duma_deg_party_list_by_tik.csv": "итоги ДЭГ по партспискам по каждой из 1 044 частей (ТИК)",
             "duma_deg_single_mandate_by_district.csv": "итоги ДЭГ по кандидатам 81 одномандатного округа; mapping — точно/реконструкция",
             "duma_paper_vs_deg_protocol_lines.csv": "строки протоколов ОИК: всего, ДЭГ, бумага — для 36 округов",
-            "contracts_2026.csv": "все 5 103 голосования: регион, выборы (если видны на портале), бюллетени, голоса, тип ГД-контракта",
+            "contracts_2026.csv": "все 5 103 голосования: регион, выборы, округ, тип выборов, бюллетени, голоса, видимость на портале",
             "crypto_verification_2024_2026.csv": "итог криптопроверки каждого голосования 2024–2026 и каким способом подтверждён",
+            "all_elections_races_2026.csv": "все 2 207 «гонок» ДЭГ-2026 (Госдума, губернатор, заксобрания, муниципальные): бюллетени, явка, три лидера в ДЭГ, отрыв",
+            "all_elections_ballot_lines_2026.csv": "каждая строка бюллетеня каждого из 5 103 голосований: кандидат/партия (с портала) и голоса ДЭГ (из журнала); выборы и округ — по contract_id в contracts_2026.csv",
+            "regions_social_indicators_2026.csv": "32 региона: показатели ДЭГ и Росстата («Регионы России — 2025»: городское население, возраст, доход, безработица, интернет)",
+            "regions_social_correlations_2026.csv": "ранговые корреляции Спирмена «показатель ДЭГ × показатель Росстата»: ρ, 95 % ДИ (бутстреп), p (перестановки), поправка Холма",
             "news_timeline.json": "хронология событий 11–24.09 со сверкой по данным", "news_sources.json": "реестр источников хронологии"}
     xl = OUT / "deg2026_tables.xlsx"
     write_xlsx(sheets, desc, xl)

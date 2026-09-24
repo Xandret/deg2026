@@ -294,12 +294,41 @@ td:first-child{color:var(--text)}
 .btn:hover{background:var(--panel-3)}
 .btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.pri:hover{filter:brightness(1.1)}
-.hint{color:var(--text-3);font-size:var(--fs-sm);margin:0 0 var(--s5)}
+.hnote{color:var(--text-3);font-size:var(--fs-sm);margin:0 0 var(--s5)}
 .dlrow{display:flex;gap:var(--s3);flex-wrap:wrap;margin:var(--s7) 0 var(--s3)}
 .btn.dl{display:inline-flex;align-items:center;text-decoration:none;height:44px}
 .fdesc{color:var(--text-3);font-size:var(--fs-xs);margin-top:2px;white-space:normal;min-width:220px}
 #filesT td:first-child a,#filesT .fname{font-weight:600;overflow-wrap:anywhere}
 @media (max-width:600px){#filesT th:nth-child(2),#filesT td:nth-child(2){display:none}.fdesc{min-width:0}}
+.filters{display:flex;flex-wrap:wrap;gap:var(--s3) var(--s6);align-items:center}
+.filters .sel{margin:0}
+.srch input{font:inherit;font-size:var(--fs-md);color:var(--text);background:var(--panel);border:1px solid var(--line-2);border-radius:var(--rad-xs);height:38px;padding:0 var(--s4);width:min(280px,70vw)}
+.sccap{display:flex;justify-content:space-between;gap:var(--s4);flex-wrap:wrap;font-size:var(--fs-sm);color:var(--text-2);margin:0 0 var(--s3)}
+.sccap b{color:var(--text);font-variant-numeric:tabular-nums}
+.mon .ep{display:grid;grid-template-columns:132px minmax(0,1fr);gap:var(--s2) var(--s5);padding:var(--s4) 0;border-bottom:1px solid var(--line)}
+.mon .ep:last-child{border-bottom:0}
+.mon .tm{font-variant-numeric:tabular-nums;color:var(--text-2);font-size:var(--fs-sm)}
+.mon .tt{font-weight:600;color:var(--text)}
+.mon .dd{font-size:var(--fs-sm);color:var(--text-2)}
+.sevb{display:inline-block;font-size:var(--fs-xs);font-weight:700;padding:1px 7px;border-radius:999px;margin-right:6px;border:1px solid var(--line-2);color:var(--text-2)}
+@media (max-width:600px){.mon .ep{grid-template-columns:1fr}}
+.bars .br{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) 64px;gap:var(--s4);align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.bars .br:last-child{border-bottom:0}
+.bars .nm{font-size:var(--fs-md);color:var(--text)}
+.bars .tr{height:14px;background:var(--panel-2);border-radius:0 4px 4px 0;overflow:hidden}
+.bars .fl{height:100%;background:var(--deg);border-radius:0 4px 4px 0}
+.bars .pv{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:var(--text)}
+.bars .pv small{display:block;font-weight:400;color:var(--text-3);font-size:var(--fs-xs)}
+#elT td:nth-child(2),#elT th:nth-child(2){min-width:220px;max-width:340px;white-space:normal;text-align:left}
+#elT td:nth-child(3),#elT td:nth-child(7),#elT th:nth-child(3),#elT th:nth-child(7){white-space:normal;min-width:140px;text-align:left}
+.rcards .rc{background:var(--panel);border:1px solid var(--line);border-radius:var(--rad-sm);padding:var(--s5) var(--s6);margin:0 0 var(--s3)}
+.rcards .rt{font-size:var(--fs-xs);color:var(--text-3);margin:0 0 2px}
+.rcards .re{font-size:var(--fs-sm);color:var(--text-2)}
+.rcards .rd{font-size:var(--fs-md);color:var(--text);font-weight:600;margin:2px 0 var(--s2)}
+.rcards .rl{font-size:var(--fs-md);color:var(--text)}
+.rcards .rl b{font-variant-numeric:tabular-nums}
+.rcards .rm{font-size:var(--fs-xs);color:var(--text-3);margin-top:2px}
+#elT .kd{display:block;color:var(--text-3);font-size:var(--fs-xs)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -313,6 +342,7 @@ td:first-child{color:var(--text)}
       <a href="#anomalies">Аномалии</a>
       <a href="#timeline">Хронология</a>
       <a href="#paper">Результаты</a>
+      <a href="#elections">Все выборы</a>
       <a href="#verify">Проверка</a>
       <a href="#data">Данные</a>
     </nav>
@@ -413,6 +443,18 @@ td:first-child{color:var(--text)}
         <h1>Все регионы</h1>
         <p>Та же информация, что на карте. Нажмите на заголовок, чтобы отсортировать, на строку — чтобы открыть регион на карте.</p>
         <div class="box tscroll" style="padding:var(--s3)"><table id="rank"></table></div>
+
+        <h2>С чем связаны различия между регионами</h2>
+        <p>Показатели ДЭГ сопоставлены с официальной статистикой Росстата по тем же 32 регионам. Выберите, что сравнивать. Каждая точка — регион; число справа вверху — ранговая корреляция Спирмена (от −1 до 1) с 95 % интервалом.</p>
+        <div class="filters">
+          <label class="sel"><span class="label" style="margin:0">ДЭГ</span><select id="scY"></select></label>
+          <label class="sel"><span class="label" style="margin:0">Росстат</span><select id="scX"></select></label>
+        </div>
+        <div class="box"><div class="sccap" id="scCap"></div><div class="chart" id="scChart" style="margin:0"></div></div>
+        <div class="note" id="scNote"></div>
+        <h3 style="margin-top:var(--s7)">Самые сильные связи</h3>
+        <div class="box tscroll"><table id="scT"></table></div>
+        <p class="foot">Росстат, «Регионы России. Социально-экономические показатели — 2025» (электронная версия, опубл. 30.12.2025), последние доступные годы: население и возраст — конец 2023 г., доходы, безработица и интернет — 2024 г. Охват ДЭГ — список ДЭГ на 100 жителей. Интервал — бутстреп по регионам, значимость — перестановочный тест с поправкой Холма на все 49 пар.</p>
       </div>
     </section>
 
@@ -486,8 +528,15 @@ td:first-child{color:var(--text)}
         <div class="box tscroll"><table id="cryptoT"></table></div>
         <p style="margin-top:12px">Почти каждое пятое голосование сначала «не проверилось»: в блоке журнала запись с итогом стоит раньше данных, нужных для его проверки, хотя по времени они появились раньше. Когда итог переставлен после них, проверка проходит. Это не ошибка подсчёта, а особенность записи, о которой наблюдателю нужно знать.</p>
 
+        <h2>Автоматический монитор (прототип)</h2>
+        <p>Шесть простых правил, которые наблюдатель мог бы запускать по журналу во время голосования, раз в несколько минут. Мы прогнали их по журналу 2026 года «как в реальном времени»: каждое правило видит только то, что уже записано к моменту сигнала (задержка — не больше 30 минут). Все три найденных вручную сбоя в журнале монитор поймал бы сам; ложных тревог по главным правилам не было.</p>
+        <div class="box tscroll"><table id="monR"></table></div>
+        <h3 style="margin-top:var(--s7)">Что он показал бы 18–20 сентября</h3>
+        <div id="monE" class="mon"></div>
+        <p class="hnote">Правило R6 («пауза в цепочке») нужно на живой выгрузке: оно отличает сбой источника данных от сбоя выборов — как ложную тревогу в Свердловской области (<a href="#anomalies/A-07">A-07</a>). В полных копиях журнала пауз не было.</p>
+
         <h2>Методика и ограничения</h2>
-        <p><b>Источник.</b> Полные копии семи цепочек блокчейна ДЭГ, выданные наблюдателям: 5 103 голосования, 12 202 035 выданных бюллетеней, 12 088 374 принятых голоса. Для 2024 и 2025 годов — такие же копии прошлых лет.</p>
+        <p><b>Источник.</b> Полные копии семи цепочек блокчейна ДЭГ, выданные наблюдателям: 5 103 голосования, 12 202 035 выданных бюллетеней, 12 088 374 транзакции голосования (из них 2 пришли после закрытия и отклонены контрактом, принято 12 088 372). Для 2024 и 2025 годов — такие же копии прошлых лет.</p>
         <p><b>Люди, а не бюллетени.</b> Один человек получает сразу несколько бюллетеней (например, в Госдуму и губернатора). Записавшимся считается уникальный избиратель; явка — получившие бюллетень от списка за вычетом исключённых. Итог 90,876 % совпадает с официальными 90,87 %.</p>
         <p><b>Участок.</b> Для сравнения лет на каждом УИК берётся одно «главное» голосование — с наибольшим числом бюллетеней. «УИК со 100 %» — список не меньше 50 человек, и бюллетень получили все, кто остался в списке.</p>
         <p><b>Время.</b> В журнале время московское; местное получено сдвигом по часовому поясу региона. «Первый час» — 08:00–09:00 местного времени 18 сентября.</p>
@@ -495,6 +544,39 @@ td:first-child{color:var(--text)}
         <p><b>Приватность.</b> Обезличенные идентификаторы избирателей используются только внутри расчётов и не публикуются; наружу выходят суммы по регионам и участкам.</p>
         <p><b>Карта.</b> Состав и границы субъектов — в соответствии с Конституцией Российской Федерации (89 субъектов, включая Республику Крым, Севастополь, ДНР, ЛНР, Запорожскую и Херсонскую области). Контуры — Natural Earth (общественное достояние), упрощены. Серым показаны субъекты, где федеральная платформа ДЭГ в 2026 году не применялась.</p>
         <p class="foot">Источники: блокчейн ДЭГ-2026 (копии для наблюдателей); портал наблюдения stat.vybory.gov.ru; протоколы на izbirkom.ru; открытый набор данных и верификатор С. Слотина (feddeg); публикации В. Толстогузова (<a href="https://t.me/s/zanashepravo" target="_blank" rel="noopener">t.me/zanashepravo</a>). Код расчётов — репозиторий deg2026 (будет открыт). Автор — Xandret.</p>
+      </div>
+    </section>
+
+    <!-- ВСЕ ВЫБОРЫ -->
+    <section class="view read" id="v-elections" hidden>
+      <div class="page" style="max-width:1100px">
+        <h1>Все выборы в ДЭГ-2026</h1>
+        <p class="lede">Через интернет голосовали не только в Госдуму. На тех же бюллетенях в журнале — выборы губернатора, заксобраний и сотен муниципальных советов. Итоги посчитаны прямо из журнала блокчейна.</p>
+        <div class="note" id="elCheck"></div>
+        <div class="tiles" id="elTiles"></div>
+
+        <h2 id="elGovH">Губернатор</h2>
+        <p id="elGovP"></p>
+        <div class="box" id="govBars"></div>
+
+        <h2>Заксобрания: партии в ДЭГ</h2>
+        <p>Одни и те же люди в один день голосовали за партию дважды: в Госдуму и в заксобрание своего региона. Выберите партию. Синяя точка — её доля в ДЭГ на выборах заксобрания, серая — на выборах в Госдуму в том же регионе. Справа — разница в процентных пунктах.</p>
+        <div class="seg scrollseg" role="group" aria-label="Партия" id="zsSeg"></div>
+        <div class="box"><div class="lk" id="zsKey"></div><div class="chart" id="zsChart" style="margin:0"></div></div>
+        <div class="box tscroll" style="margin-top:var(--s5)"><table id="zsT"></table></div>
+
+        <h2>Все округа и выборы</h2>
+        <p>Каждая строка — одна «гонка»: одномандатный или многомандатный округ либо вся территория выборов (партсписок, губернатор, глава). Лидер — первый по голосам в ДЭГ; «отрыв» — от ближайшего соперника (в многомандатном округе — между последним проходным местом и первым непроходным). Это только электронная часть: на участках результат может быть другим.</p>
+        <div class="filters">
+          <label class="sel"><span class="label" style="margin:0">Регион</span><select id="elReg"></select></label>
+          <label class="sel"><span class="label" style="margin:0">Тип</span><select id="elKind"></select></label>
+          <label class="sel srch"><span class="label" style="margin:0">Поиск</span><input id="elQ" type="search" placeholder="выборы, округ, кандидат" autocomplete="off"></label>
+        </div>
+        <p class="hnote" id="elCount"></p>
+        <div class="box tscroll" style="padding:var(--s3)" id="elTbox"><table id="elT"></table></div>
+        <div id="elCards" class="rcards"></div>
+        <div style="margin-top:var(--s4)"><button class="btn" type="button" id="elMore">Показать ещё</button></div>
+        <p class="foot">Источник итогов — транзакции results в журнале ДЭГ (проверены криптографически, раздел «Проверка»); названия выборов, округов и кандидатов — портал наблюдения stat.vybory.gov.ru. Госдума — в разделе <a href="#paper">«Результаты»</a>. Таблица целиком — в разделе <a href="#data">«Данные»</a>.</p>
       </div>
     </section>
 
@@ -507,7 +589,7 @@ td:first-child{color:var(--text)}
           <a class="btn pri dl" id="dlXlsx" href="data/deg2026_tables.xlsx" download>Таблицы для Excel</a>
           <a class="btn dl" id="dlZip" href="deg2026_open_data.zip" download>Весь набор (ZIP)</a>
         </div>
-        <p class="hint">Для просмотра в Excel удобнее книга: одна вкладка — одна таблица, заголовки по-русски. В архиве — все файлы ниже, включая список всех голосований и криптопроверку.</p>
+        <p class="hnote">Для просмотра в Excel удобнее книга: одна вкладка — одна таблица, заголовки по-русски. В архиве — все файлы ниже, включая список всех голосований и криптопроверку.</p>
         <h2>Файлы по отдельности</h2>
         <div class="box tscroll"><table id="filesT"></table></div>
         <h2>Как читать</h2>
@@ -541,6 +623,9 @@ td:first-child{color:var(--text)}
 <script type="application/json" id="resData">__RES__</script>
 <script type="application/json" id="newsData">__NEWS__</script>
 <script type="application/json" id="filesData">__FILES__</script>
+<script type="application/json" id="elData">__ELECT__</script>
+<script type="application/json" id="socData">__SOCIAL__</script>
+<script type="application/json" id="monData">__MONITOR__</script>
 <script>
 (function(){
 "use strict";
@@ -608,9 +693,9 @@ GEO.regions.forEach(g=>{
     p.addEventListener('pointerleave',hideTip);
   }
 });
-const MARK={31:['1','A-01'],49:['3','A-03'],66:['7','A-07'],21:['8','A-08'],10:['9','A-09']};
-Object.entries(MARK).forEach(([c,[lab,id]])=>{const r=R[c];
-  const g=el('g',{'data-x':r.cx,'data-y':r.cy,'data-an':id,tabindex:'0',role:'link','aria-label':'Аномалия '+id},gM);
+const MARK={31:['1','A-01'],49:['3','A-03'],66:['7','A-07'],21:['8','A-08'],10:['9','A-09'],39:['11','A-11',[-2,-20]]};   // смещение — чтобы кружок не закрывал маленький регион
+Object.entries(MARK).forEach(([c,[lab,id,off]])=>{const r=R[c];const [dx,dy]=off||[0,0];
+  const g=el('g',{'data-x':r.cx+dx,'data-y':r.cy+dy,'data-an':id,tabindex:'0',role:'link','aria-label':'Аномалия '+id},gM);
   el('circle',{r:10},g);el('text',{},g).textContent=lab;
   g.addEventListener('pointermove',ev=>{if(ev.pointerType!=='mouse')return;showTip(`<b>${id}</b> · ${esc(CARDS.find(x=>x.id===id).title)}<br><span class="k">нажмите, чтобы прочитать разбор</span>`,ev);});
   g.addEventListener('pointerleave',hideTip);
@@ -769,7 +854,7 @@ const chip=v=>`<span class="chip"><svg viewBox="0 0 12 12" style="color:var(${V[
 $('verdictKey').innerHTML=$('verdictKey2').innerHTML=Object.keys(V).map(chip).join('');
 $('verdictExplain').innerHTML=Object.keys(V).map(v=>`<li><b>${V[v].t}</b> — ${V[v].x}</li>`).join('');
 const TG='https://t.me/zanashepravo/';
-const CARD_REG={'A-01':31,'A-03':49,'A-07':66,'A-08':21,'A-09':10};
+const CARD_REG={'A-01':31,'A-03':49,'A-07':66,'A-08':21,'A-09':10,'A-11':39};
 const CARDS=[
  {id:'A-01',title:'Ровеньская ТИК: электронное голосование остановлено в 10:53 первого дня',v:['ok'],big:'613 из 1 878',bigl:'записавшихся успели получить бюллетень',
   p:'Единственное из 5 103 голосований, закрытое раньше срока: одномандатный округ Госдумы № 80, Белгородская обл., 18.09 в 10:53:40 МСК. Бюллетени по всем выборам выдаются человеку одним действием, поэтому вместе с ним остановилась выдача и по партспискам, и на выборах губернатора.',
@@ -807,10 +892,14 @@ const CARDS=[
   p:'В 36 округах с официальными протоколами медианная явка на участках 47,8 %, среди записавшихся на ДЭГ — 91,1 %. Победитель на участках чаще теряет в ДЭГ (до −27,5 п. п. в Новочеркасском), но везде остаётся первым. У «Единой России» разница зависит от региона: от −17,2 (Смоленская) до +14,2 п. п.',
   li:['Данные участков — официальные протоколы (открытый снимок izbirkom, проверенный нами, и наши записи). Подробно — в разделе <a href="#paper">«Результаты»</a>.'],
   alt:'Состав избирателей ДЭГ другой (запись через Госуслуги). Различие подтверждено, причины по этим данным не проверяемы.',src:[]},
- {id:'A-10',title:'Шесть голосов приняты в блокчейн, но не посчитаны',v:['ok','tech'],big:'6 из 12 088 374',bigl:'принятых голосов 2026 года не вошли в итог',
+ {id:'A-10',title:'Шесть голосов приняты в блокчейн, но не посчитаны',v:['ok','tech'],big:'6 из 12 088 372',bigl:'принятых голосов 2026 года не вошли в итог',
   p:'Криптопроверка нашла голоса, которые контракт принял, а в итог они не попали: у пяти (все — Московская область) повреждён шифротекст, у одного (Пушкинский г. о.) неверное доказательство допустимости выбора. Без них каждый итог сходится до единицы.',
-  li:['Итог каждого из шести голосований ровно на 1 меньше числа принятых голосов.','Такие же случаи — по одному в 2024 и 2025 годах.','Ни портал, ни протоколы не сообщают, сколько голосов отброшено и почему.'],
-  alt:'Скорее всего, сбой приложения при шифровании или отправке. На итоги не влияет, но наблюдатель узнаёт об этом только из собственной полной проверки.',src:[]}
+  li:['Итог каждого из шести голосований ровно на 1 меньше числа принятых голосов.','Такие же случаи — по одному в 2024 и 2025 годах.','Ещё 2 голоса отправлены за секунды до закрытия, но в блок попали после транзакции закрытия, и контракт их не записал: Пермская гордума (отправлен в 20:14:57 местного, закрыто в 20:15:08) и Госдума в Московской обл. (20:00:30, закрыто в 20:00:43 — см. A-02).','Ни портал, ни протоколы не сообщают, сколько голосов отброшено и почему.'],
+  alt:'Скорее всего, сбой приложения при шифровании или отправке. На итоги не влияет, но наблюдатель узнаёт об этом только из собственной полной проверки.',src:[]},
+ {id:'A-11',title:'Калининградская область: итоги ДЭГ местных выборов не показаны на портале',v:['ok','nv'],big:'176 голосований',bigl:'на 12 выборах, 173 072 бюллетеня — без итогов на портале наблюдения',
+  p:'У всех остальных 3 001 голосований, кроме Госдумы, портал наблюдения показывает итог, и он до единицы совпадает с журналом. В Калининградской области у выборов в Законодательное собрание и 11 муниципальных выборов статус «итоги подведены», но ни итогов, ни бюллетеня на портале нет.',
+  li:['В блокчейне итоги этих голосований есть и прошли криптопроверку — они посчитаны в разделе «Все выборы», кандидаты обозначены номером строки бюллетеня.','Выборы в Госдуму в том же регионе показаны на портале с итогами.','Проверено по данным портала на 24.09, 12:16 МСК.'],
+  alt:'Возможно, так настроена публикация у регионального организатора. Без данных портала имена кандидатов к итогам ДЭГ можно привязать только по официальному протоколу.',src:[]}
 ];
 $('cards').innerHTML=CARDS.map(c=>`<article class="an" id="${c.id}">
   <div class="top"><span class="id">${c.id}</span><span style="display:flex;gap:6px;flex-wrap:wrap">${c.v.map(chip).join('')}</span></div>
@@ -964,6 +1053,118 @@ function renderTL(){const items=NEWS.filter(x=>tlKind==='all'||x.kind===tlKind);
   $('tl').innerHTML=html||'<p>Нет событий.</p>';}
 renderTL();
 
+// ---------- монитор ----------
+(function(){const M=JSON.parse($('monData').textContent);
+  const RDESC={early_finish:'Голосование закрыто раньше объявленного конца приёма (20:15 местного)',stall:'Регион перестал выдавать бюллетени: ≥ 300 за час, затем 0 за 20 минут, днём',
+    accept_gap:'За 30 минут выдано ≥ 300 бюллетеней, а принято меньше половины голосов',uik_100:'На участке со списком ≥ 50 бюллетень получили все, кто в списке',
+    rejected_vote:'Голос отправлен, но контракт его не записал',feed_gap:'В цепочке нет новых блоков дольше 5 минут'};
+  const SEV={high:'важно',medium:'внимание',low:'к сведению',info:'источник'};
+  $('monR').innerHTML=`<thead><tr><th>Правило</th><th style="text-align:left">Что проверяет</th><th>Сигналов в 2026 г.</th></tr></thead><tbody>${M.rules.map(r=>`<tr><td><b>${r.code}</b> ${esc(r.title)}</td><td style="text-align:left;white-space:normal">${esc(RDESC[r.key])}</td><td>${num(r.n)}</td></tr>`).join('')}</tbody>`;
+  $('monE').innerHTML=M.episodes.map(e=>{const span=e.t_end!==e.t?`–${e.t_end.slice(e.t_end.indexOf(' ')+1)}`:'';
+    const where=e.n_regions>3?`${e.n_regions} регионов`:e.regions.map(shortReg).join(', ');
+    const cnt=e.n>1?`${num(e.n)} сигналов · `:'';
+    return `<div class="ep"><div class="tm">${esc(e.t)}${esc(span)}<br>МСК</div><div><div class="tt"><span class="sevb">${e.code} · ${SEV[e.sev]}</span>${esc(e.title)}</div><div class="dd">${cnt}${esc(where)} — ${esc(e.detail)}${e.anomaly?` · <a href="#anomalies/${e.anomaly}">${e.anomaly}</a>`:''}</div></div></div>`;}).join('');})();
+
+// ---------- регионы × Росстат ----------
+const SO=JSON.parse($('socData').textContent);
+const SUF={uptake:' на 100 жит.',turnout:' %',first_hour:' %',uik100:' %',removed:' %',unpaired:' %',er:' %',urban:' %',old:' %',unemp:' %',inet:' %',inet_daily:' %',bband:' %',income:' ₽'};
+const fmtS=(k,v)=>v==null?'—':(k==='income'?num(v):dec(v,k==='unpaired'||k==='removed'||k==='uik100'?2:1))+SUF[k];
+SO.deg.forEach(([k,l],i)=>$('scY').insertAdjacentHTML('beforeend',`<option value="${k}"${i===0?' selected':''}>${esc(l)}</option>`));
+SO.x.forEach((k,i)=>$('scX').insertAdjacentHTML('beforeend',`<option value="${k}"${k==='urban'?' selected':''}>${esc(SO.meta[k].label)}</option>`));
+const corOf=(y,x)=>SO.cor.find(c=>c.y===y&&c.x===x);
+function scChart(){const host=$('scChart');if(!host||!host.offsetParent)return;host.innerHTML='';
+  const yk=$('scY').value,xk=$('scX').value,c=corOf(yk,xk),ylab=SO.deg.find(d=>d[0]===yk)[1],xlab=SO.meta[xk].label;
+  const pts=SO.rows.filter(r=>r[xk]!=null&&r[yk]!=null);
+  const W=host.clientWidth||600,H=Math.min(420,Math.max(280,W*.6)),m={t:10,r:14,b:38,l:52};
+  const xs=pts.map(p=>p[xk]),ys=pts.map(p=>p[yk]);const pad=(a,b)=>{const d=(b-a)||1;return [a-d*.06,b+d*.06];};
+  const [x0,x1]=pad(Math.min(...xs),Math.max(...xs)),[y0,y1]=pad(Math.min(...ys),Math.max(...ys));
+  const X=v=>m.l+(v-x0)/(x1-x0)*(W-m.l-m.r),Y=v=>H-m.b-(v-y0)/(y1-y0)*(H-m.t-m.b);
+  const sv=el('svg',{viewBox:`0 0 ${W} ${H}`,height:H,role:'img','aria-label':ylab+' и '+xlab});
+  const ticks=(a,b,n)=>{const st=Math.pow(10,Math.floor(Math.log10((b-a)/n)));const k=[1,2,5,10].find(f=>(b-a)/(st*f)<=n)*st;const out=[];for(let v=Math.ceil(a/k)*k;v<=b;v+=k)out.push(+v.toFixed(6));return out;};
+  ticks(x0,x1,W<560?4:7).forEach(v=>{el('line',{x1:X(v),x2:X(v),y1:m.t,y2:H-m.b,stroke:css('--grid')},sv);el('text',{x:X(v),y:H-m.b+14,'text-anchor':'middle'},sv).textContent=xk==='income'?Math.round(v/1000)+' тыс.':String(v).replace('.',',');});
+  ticks(y0,y1,6).forEach(v=>{el('line',{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),stroke:css('--grid')},sv);el('text',{x:m.l-6,y:Y(v)+4,'text-anchor':'end'},sv).textContent=String(v).replace('.',',');});
+  el('text',{x:(m.l+W-m.r)/2,y:H-4,'text-anchor':'middle',style:'fill:var(--text-2)'},sv).textContent=xlab+(xk==='income'?', ₽ в месяц':', %');
+  const hi=new Set();[...pts].sort((a,b)=>b[yk]-a[yk]).slice(0,2).forEach(p=>hi.add(p.code));[...pts].sort((a,b)=>a[yk]-b[yk]).slice(0,1).forEach(p=>hi.add(p.code));
+  pts.forEach(p=>{const cx=X(p[xk]),cy=Y(p[yk]);
+    const dot=el('circle',{cx,cy,r:6,fill:css('--deg'),stroke:css('--panel'),'stroke-width':2},sv);
+    if(hi.has(p.code))el('text',{x:cx+9,y:cy+4,style:'fill:var(--text-2);font-size:11px'},sv).textContent=shortReg(p.region);
+    const hit=el('circle',{cx,cy,r:13,fill:'transparent'},sv);
+    const mv=ev=>showTip(`<b>${esc(p.region)}</b><br><span class="k">${esc(ylab)}:</span> ${fmtS(yk,p[yk])}<br><span class="k">${esc(xlab)}:</span> ${fmtS(xk,p[xk])}`,ev);
+    hit.addEventListener('pointermove',mv);hit.addEventListener('pointerdown',mv);hit.addEventListener('pointerleave',hideTip);});
+  host.appendChild(sv);
+  const strength=a=>a>=.5?'сильная':a>=.3?'умеренная':a>=.1?'слабая':'практически нет';
+  $('scCap').innerHTML=`<span>${esc(ylab)} ↔ ${esc(xlab)}</span><span>ρ = <b>${dec(c.rho,2)}</b> [${dec(c.ci_lo,2)}; ${dec(c.ci_hi,2)}]</span>`;
+  $('scNote').innerHTML=`<b>Как читать:</b> связь ${strength(Math.abs(c.rho))}${Math.abs(c.rho)>=.1?(c.rho<0?', обратная — чем больше «'+esc(xlab.toLowerCase())+'», тем ниже показатель':', прямая — чем больше «'+esc(xlab.toLowerCase())+'», тем выше показатель'):''}. ${c.significant?'Она <b>устойчива</b> даже с поправкой на то, что проверено 49 пар.':'С поправкой на множественные сравнения (49 пар) она <b>не устойчива</b> — может быть случайной.'} Это связь между регионами, а не между людьми, и она не доказывает причину.`;}
+$('scY').onchange=scChart;$('scX').onchange=scChart;
+(function(){const top=[...SO.cor].sort((a,b)=>Math.abs(b.rho)-Math.abs(a.rho)).slice(0,10);
+  $('scT').innerHTML=`<thead><tr><th>Показатель ДЭГ</th><th style="text-align:left">Показатель Росстата</th><th style="text-transform:none">ρ</th><th>95 % интервал</th><th>Устойчива</th></tr></thead><tbody>${top.map(c=>`<tr data-y="${c.y}" data-x="${c.x}" tabindex="0" style="cursor:pointer"><td>${esc(c.y_label)}</td><td style="text-align:left">${esc(c.x_label)}</td><td>${dec(c.rho,2)}</td><td>${dec(c.ci_lo,2)} … ${dec(c.ci_hi,2)}</td><td>${c.significant?'да':'нет'}</td></tr>`).join('')}</tbody>`;
+  $('scT').querySelectorAll('tbody tr').forEach(tr=>{const go=()=>{$('scY').value=tr.dataset.y;$('scX').value=tr.dataset.x;scChart();$('scChart').scrollIntoView({behavior:'smooth',block:'center'});};tr.onclick=go;tr.onkeydown=e=>{if(e.key==='Enter')go();};});})();
+
+// ---------- все выборы ----------
+const EL=JSON.parse($('elData').textContent);
+const regName=rc=>(R[rc]&&R[rc].name)||(R[String(rc)]&&R[String(rc)].name)||String(rc);
+(function(){const C=EL.check,S=EL.summary;
+  $('elCheck').innerHTML=`<b>Сверка:</b> итог в журнале до единицы совпал с порталом наблюдения во всех ${num(C.match)} голосованиях, где портал показывает итоги. В ${C.hidden_region==='Калининградская область'?'Калининградской области':esc(C.hidden_region||'')} портал не показывает итогов ${num(C.hidden)} голосований (${C.hidden_elections} выборов, ${num(C.hidden_ballots)} бюллетеней) — в журнале они есть, кандидаты там обозначены номером строки бюллетеня (<a href="#anomalies/A-11">A-11</a>).`;
+  const byEl=(ks)=>new Set(EL.races.filter(r=>ks.includes(EL.kinds[r[1]])).map(r=>r[2])).size;
+  const regEl=byEl(['head_region','reg_pl','reg_sm','reg_mm']),munEl=byEl(['head_local','mun_pl','mun_sm','mun_mm']);
+  const zsN=EL.zs.length,munR=EL.races.filter(r=>EL.kinds[r[1]].startsWith('mun')||EL.kinds[r[1]]==='head_local').length;
+  $('elTiles').innerHTML=[[num(C.elections),'выборов с ДЭГ',num(C.total)+' электронных голосований'],
+    ['1','выборы губернатора',esc(EL.gov.region)],[String(regEl),'региональных выборов',zsN+' заксобраний и '+(regEl-zsN)+' довыборов'],
+    [num(munEl),'муниципальных выборов',num(munR)+' округов и списков']]
+    .map(t=>`<div class="tile"><div class="v">${t[0]}</div><div class="l">${t[1]}</div><div class="n">${t[2]}</div></div>`).join('');
+  const G=EL.gov,gt=G.cands.reduce((a,c)=>a+c[1],0),mx=Math.max(...G.cands.map(c=>c[2]));
+  $('elGovH').textContent='Губернатор: '+G.region;
+  $('elGovP').innerHTML=`Единственные выборы главы региона с ДЭГ в 2026 году. Бюллетень получили ${num(G.ballots)} из ${num(G.list)} записавшихся (явка ДЭГ ${pct(G.turnout)}). Доли — от ${num(gt)} голосов за кандидатов.`;
+  $('govBars').innerHTML='<div class="bars">'+G.cands.map(c=>`<div class="br"><span class="nm">${esc(shortName(c[0]))}</span><span class="tr"><span class="fl" style="display:block;width:${(100*c[2]/mx).toFixed(1)}%"></span></span><span class="pv">${pct(c[2])}<small>${num(c[1])}</small></span></div>`).join('')+'</div>';
+})();
+const ZP=['Единая Россия','КПРФ','ЛДПР','Новые люди','Справедливая Россия'];let zsP=0;
+ZP.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.textContent=p;b.setAttribute('aria-pressed',i===0);
+  b.onclick=()=>{zsP=i;[...$('zsSeg').children].forEach(x=>x.setAttribute('aria-pressed',x===b));zsChart();};$('zsSeg').appendChild(b);});
+$('zsKey').innerHTML=`<span><i class="dot" style="background:var(--deg)"></i>заксобрание, ДЭГ</span><span><i class="dot" style="background:var(--text-3)"></i>Госдума, ДЭГ</span>`;
+const ZS=EL.zs.filter(z=>z.names);
+function zsChart(){const host=$('zsChart');if(!host||!host.offsetParent)return;host.innerHTML='';const P=ZP[zsP];
+  const rows=ZS.map(z=>({name:z.region,a:z.reg_pl[P]||0,b:(z.duma_pl||{})[P]})).filter(r=>r.b!=null).sort((x,y)=>(x.a-x.b)-(y.a-y.b));
+  const W=host.clientWidth||600,lw=Math.min(200,W*.34),rh=24,m={t:6,b:24,r:56},H=m.t+rows.length*rh+m.b;
+  const mx=Math.max(...rows.map(r=>Math.max(r.a,r.b))),mn=Math.min(...rows.map(r=>Math.min(r.a,r.b)));const step=mx-mn>30?10:mx-mn>8?5:1;
+  const xmax=Math.ceil((mx+.5)/step)*step,lo=Math.max(0,Math.floor((mn-.5)/step)*step);const x=v=>lw+(v-lo)/(xmax-lo)*(W-lw-m.r);
+  const sv=el('svg',{viewBox:`0 0 ${W} ${H}`,height:H,role:'img','aria-label':'Доля партии: заксобрание и Госдума'});axisX(sv,x,xmax,m.t,H-m.b,step,lo);
+  rows.forEach((r,i)=>{const y=m.t+i*rh+rh/2,d=r.a-r.b;
+    el('text',{x:lw-8,y:y+4,'text-anchor':'end',style:'fill:var(--text);font-size:12px'},sv).textContent=W<560?shortReg(r.name):r.name;
+    el('line',{x1:x(r.b),x2:x(r.a),y1:y,y2:y,stroke:css('--axis'),'stroke-width':2},sv);
+    el('circle',{cx:x(r.b),cy:y,r:5.5,fill:css('--text-3'),stroke:css('--panel'),'stroke-width':2},sv);
+    el('circle',{cx:x(r.a),cy:y,r:5.5,fill:css('--deg'),stroke:css('--panel'),'stroke-width':2},sv);
+    el('text',{x:W-2,y:y+4,'text-anchor':'end',style:'font-weight:600;fill:var(--text-2);font-size:12px'},sv).textContent=(d>0?'+':d<0?'−':'')+dec(Math.abs(d));
+    const hit=el('rect',{x:0,y:y-rh/2,width:W,height:rh,fill:'transparent'},sv);
+    const mv=ev=>showTip(`<b>${esc(r.name)}</b> · ${esc(P)}<br><span class="k">Заксобрание (ДЭГ):</span> ${pct(r.a,2)}<br><span class="k">Госдума (ДЭГ):</span> ${pct(r.b,2)}<br><span class="k">Разница:</span> ${(d>0?'+':'')+dec(d,2)} п. п.`,ev);
+    hit.addEventListener('pointermove',mv);hit.addEventListener('pointerdown',mv);hit.addEventListener('pointerleave',hideTip);});
+  host.appendChild(sv);}
+(function(){const cls=()=>'';
+  $('zsT').innerHTML=`<thead><tr><th>Регион</th><th>Бюллетеней ДЭГ</th><th>Явка ДЭГ</th>${ZP.map(p=>`<th>${p}</th>`).join('')}<th>ЕР в Госдуму</th><th>ЕР: разница</th></tr></thead><tbody>${EL.zs.map(z=>{
+    if(!z.names)return `<tr><td>${esc(z.region)}</td><td>${num(z.ballots)}</td><td>${pct(z.turnout)}</td><td colspan="7" style="text-align:left;white-space:normal">Портал не публикует бюллетень — партии не названы (<a href="#anomalies/A-11">A-11</a>)</td></tr>`;
+    const er=z.reg_pl['Единая Россия']||0,ed=(z.duma_pl||{})['Единая Россия'];
+    return `<tr><td>${esc(z.region)}</td><td>${num(z.ballots)}</td><td>${pct(z.turnout)}</td>${ZP.map(p=>`<td>${z.reg_pl[p]!=null?pct(z.reg_pl[p]):'—'}</td>`).join('')}<td>${ed!=null?pct(ed):'—'}</td><td class="${cls(er-ed)}">${ed!=null?(er-ed>0?'+':'')+dec(er-ed):'—'}</td></tr>`;}).join('')}</tbody>`;})();
+// таблица гонок
+(function(){const regs=[...new Set(EL.races.map(r=>r[0]))].map(rc=>[rc,regName(rc)]).sort((a,b)=>a[1].localeCompare(b[1],'ru'));
+  $('elReg').innerHTML='<option value="">Все регионы</option>'+regs.map(([c,n])=>`<option value="${c}">${esc(n)}</option>`).join('');
+  const kinds=[...new Set(EL.races.map(r=>r[1]))].sort((a,b)=>a-b);
+  $('elKind').innerHTML='<option value="">Все типы</option>'+kinds.map(k=>`<option value="${k}">${esc(EL.kindRu[k])}</option>`).join('');
+  const low=s=>String(s).toLowerCase().replace(/ё/g,'е');
+  const rows=EL.races.map(r=>({rc:r[0],k:r[1],e:EL.elections[r[2]],d:r[3],seats:r[4],nc:r[5],b:r[6],t:r[7],ln:r[8],lp:r[9],mg:r[10],nm:r[11],reg:regName(r[0])}));
+  rows.forEach(r=>r.q=low(r.e+' '+r.d+' '+r.ln+' '+r.reg));
+  rows.sort((a,b)=>a.reg.localeCompare(b.reg,'ru')||a.k-b.k||a.e.localeCompare(b.e,'ru')||a.d.localeCompare(b.d,'ru',{numeric:true}));
+  let lim=50,cur=rows;
+  function draw(){const rg=$('elReg').value,kd=$('elKind').value,q=low($('elQ').value.trim());
+    cur=rows.filter(r=>(!rg||String(r.rc)===rg)&&(kd===''||String(r.k)===kd)&&(!q||r.q.includes(q)));
+    $('elCount').textContent=`Найдено: ${num(cur.length)} из ${num(rows.length)}`;
+    const PLK=k=>EL.kinds[k].endsWith('_pl'),seatsTxt=r=>PLK(r.k)?'—':r.seats;
+    const leader=r=>r.nm?esc(PLK(r.k)?r.ln:shortName(r.ln)):esc(r.ln)+' <span class="kd">имя не опубликовано</span>';
+    const mob=isMobile();$('elTbox').hidden=mob;$('elCards').hidden=!mob;
+    if(mob){$('elCards').innerHTML=cur.slice(0,lim).map(r=>`<div class="rc"><div class="rt">${esc(shortReg(r.reg))} · ${esc(EL.kindRu[r.k])}</div><div class="re">${esc(r.e)}</div><div class="rd">${esc(r.d||'вся территория')}${PLK(r.k)||r.seats===1?'':` · мест: ${r.seats}`}</div><div class="rl">Лидер в ДЭГ: ${leader(r)} <b>${pct(r.lp)}</b></div><div class="rm">бюллетеней ДЭГ ${num(r.b)} · явка ${pct(r.t)} · кандидатов ${r.nc}${r.mg==null?'':` · отрыв ${dec(r.mg)} п. п.`}</div></div>`).join('');}
+    else $('elT').innerHTML=`<thead><tr><th>Регион</th><th>Выборы</th><th>Округ</th><th>Мест</th><th>Бюллетеней ДЭГ</th><th>Явка ДЭГ</th><th>Лидер в ДЭГ</th><th>Отрыв, п. п.</th></tr></thead><tbody>${cur.slice(0,lim).map(r=>`<tr><td>${esc(shortReg(r.reg))}</td><td>${esc(r.e)}<span class="kd">${esc(EL.kindRu[r.k])}</span></td><td>${esc(r.d||'вся территория')}</td><td>${seatsTxt(r)}</td><td>${num(r.b)}</td><td>${pct(r.t)}</td><td>${leader(r)} <span class="kd">${pct(r.lp)} · кандидатов: ${r.nc}</span></td><td>${r.mg==null?'—':dec(r.mg)}</td></tr>`).join('')}</tbody>`;
+    $('elMore').hidden=cur.length<=lim;$('elMore').textContent=`Показать ещё (${num(Math.min(100,cur.length-lim))})`;}
+  let qt;$('elReg').onchange=()=>{lim=50;draw();};$('elKind').onchange=()=>{lim=50;draw();};$('elQ').oninput=()=>{clearTimeout(qt);qt=setTimeout(()=>{lim=50;draw();},150);};
+  $('elMore').onclick=()=>{lim+=100;draw();};draw();window.elDraw=draw;})();
+
 // ---------- данные ----------
 (function(){const F=JSON.parse($('filesData').textContent);
   const sz=b=>b>=1048576?(b/1048576).toLocaleString('ru-RU',{maximumFractionDigits:1})+' МБ':Math.max(1,Math.round(b/1024))+' КБ';
@@ -977,13 +1178,15 @@ renderTL();
   $('filesT').innerHTML=`<thead><tr><th>Файл и содержание</th><th>Формат</th><th>Строк</th><th>Размер</th></tr></thead><tbody>${F.files.map(f=>`<tr><td>${F.preview?`<b class="fname">${esc(f.file)}</b>`:`<a href="data/${encodeURIComponent(f.file)}" download>${esc(f.file)}</a>`}<div class="fdesc">${esc(f.desc)}</div></td><td>${kind(f.file)}</td><td>${f.rows==null?'—':nf.format(f.rows)}</td><td>${sz(f.bytes)}</td></tr>`).join('')}</tbody>`;})();
 
 // ---------- маршруты ----------
-const VIEWS=['map','about','regions','anomalies','timeline','paper','verify','data'];
+const VIEWS=['map','about','regions','anomalies','timeline','paper','elections','verify','data'];
 function route(){const h=location.hash.slice(1)||'map';const [v,sub]=h.split('/');const view=VIEWS.includes(v)?v:'map';
   VIEWS.forEach(n=>{$('v-'+n).hidden=n!==view;});
   document.querySelectorAll('.nav a').forEach(a=>a.getAttribute('href')==='#'+view?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
   hideTip();
   if(view==='map'){requestAnimationFrame(()=>{if(!inited){inited=true;goPreset(isMobile()?'eu':'all');}else applyVB();});}
   if(view==='paper')requestAnimationFrame(dumbbell);
+  if(view==='elections')requestAnimationFrame(zsChart);
+  if(view==='regions')requestAnimationFrame(scChart);
   if(view==='anomalies'&&sub){requestAnimationFrame(()=>{const n=$(sub);if(n){n.scrollIntoView({behavior:'smooth',block:'start'});n.classList.add('flash');setTimeout(()=>n.classList.remove('flash'),1800);}});}
   else if(view!=='map'){$('v-'+view).scrollTop=0;}
   const cur=document.querySelector('.nav a[aria-current]');if(cur)cur.scrollIntoView({block:'nearest',inline:'nearest'});}
@@ -997,10 +1200,10 @@ $('dlgGo').onclick=()=>{closeHelp();location.hash='#map';};$('dlgMore').onclick=
 $('dlg').addEventListener('click',e=>{if(e.target.id==='dlg')closeHelp();});
 addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('dlg').hidden)closeHelp();});
 
-function repaintAll(){paint();if(selected)renderRegion(selected);dumbbell();}
+function repaintAll(){paint();if(selected)renderRegion(selected);dumbbell();zsChart();scChart();}
 let rt,wasMobile=isMobile();addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{
   if(isMobile()!==wasMobile){wasMobile=isMobile();if(selected)setSheet(wasMobile?'peek':'open');goPreset(preset);}else applyVB();
-  if(selected)renderRegion(selected);dumbbell();},150);});
+  if(selected)renderRegion(selected);dumbbell();zsChart();scChart();if(window.elDraw)elDraw();},150);});
 
 buildMetricUI();paint();renderRank();route();
 if(!store.get('deg-seen'))openHelp();
