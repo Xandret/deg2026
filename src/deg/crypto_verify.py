@@ -98,16 +98,18 @@ def main(argv=None):
             files.append(z)
     if not files:
         print("Нет data/derived/chain_dumps/*.jsonl.gz — сначала run.cmd make_chain_dumps"); return 2
-    env = dict(os.environ, PYTHONUTF8="1")
+    env = dict(os.environ, PYTHONUTF8="1",
+               PYTHONPATH=os.pathsep.join([str(config.REPO / "src"), str(vdir)]))
     if dll:
         env["PATH"] = dll + os.pathsep + env.get("PATH", "")
+        env["DEG_GCRYPT_DIR"] = dll
     procs, results, t0 = {}, {}, time.time()
     queue = list(files)
     while queue or procs:
         while queue and len(procs) < a.parallel:
             f = queue.pop(0); name = f.name.split(".")[0]
             log = open(config.LOGS / f"verify-{name}.log", "w", encoding="utf-8")
-            cmd = [sys.executable, str(vdir / "verify.py"), str(f), "--workers", str(a.workers)]
+            cmd = [sys.executable, "-m", "deg.verifier_boot", str(f), "--workers", str(a.workers)]
             if not a.full:
                 cmd.append("--results-only")
             # cwd = папка GnuPG: verifier ищет libgcrypt-20.dll по относительному имени
