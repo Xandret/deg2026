@@ -271,6 +271,13 @@ td:first-child{color:var(--text)}
 .tll{font-size:var(--fs-sm)}
 .tli.k-data{background:linear-gradient(90deg,var(--wash-2),transparent 60%);border-radius:var(--rad-xs);padding-left:8px}
 @media (max-width:520px){.tli{grid-template-columns:1fr;gap:2px}}
+.tlsl{color:var(--text-3)}
+.tlsrc{display:inline}
+.tlst{color:var(--text-3);font-size:var(--fs-xs)}
+.tlsep{color:var(--text-3);margin:0 6px}
+.fa{display:block;margin:6px 0;padding:6px 8px;border:1px solid var(--line-2);border-radius:6px;font-size:var(--fs-xs);font-weight:700;letter-spacing:.02em;color:var(--text)}
+.srcl{padding-left:20px}
+.srcl li{margin:0 0 6px}
 /* подсказка и приветствие */
 .tip{position:fixed;z-index:50;pointer-events:none;background:var(--panel);color:var(--text);border:1px solid var(--line-2);border-radius:var(--rad-xs);padding:var(--s3) var(--s4);font-size:var(--fs-sm);line-height:1.45;box-shadow:var(--shadow);max-width:260px;opacity:0;transition:opacity .1s}
 .tip .k{color:var(--text-3)}
@@ -420,7 +427,9 @@ td:first-child{color:var(--text)}
         <div class="tiles" id="tlTiles"></div>
         <div class="seg scrollseg" role="group" aria-label="Источник" id="tlKinds"></div>
         <div class="tl" id="tl"></div>
-        <p class="foot">Источники — публичные Telegram-каналы (веб-версия t.me) ЦИК России, Общественной палаты, «Госуслуг», ТАСС, РБК, «Коммерсанта», «Ведомостей» и наблюдателя В. Толстогузова; отобраны вручную из ~5 тыс. постов. Материалы организаций, признанных в РФ нежелательными, не используются. Время — московское; «≈» — время известно приблизительно. Московская система электронного голосования — отдельная, в наших данных её нет.</p>
+        <h2>Источники</h2>
+        <ul class="srcl" id="tlSources"></ul>
+        <p class="foot">Публичные Telegram-каналы (веб-версия t.me) и сайт «Интерфакса»; события отобраны вручную из ~8 тыс. постов за 11–24 сентября. «Крупное федеральное СМИ» — общероссийские информагентства, деловые и массовые издания. Материалы организаций, включённых в перечень нежелательных, не используются. Материалы иностранных агентов (если появятся) сопровождаются маркировкой по требованиям законодательства РФ; статусы сверяются с реестром Минюста России на дату публикации (последняя сверка — 24.09.2026). Время московское; «≈» — время известно приблизительно. Московская система электронного голосования — отдельная, в наших данных её нет.</p>
       </div>
     </section>
 
@@ -477,7 +486,7 @@ td:first-child{color:var(--text)}
         <p><b>Время.</b> В журнале время московское; местное получено сдвигом по часовому поясу региона. «Первый час» — 08:00–09:00 местного времени 18 сентября.</p>
         <p><b>Чего здесь нет.</b> Данные не позволяют узнать, кто как проголосовал (так задумано), различить причины исключения из списка, проверить, кто держал телефон. Необычные закономерности — повод для вопросов, а не вывод о принуждении.</p>
         <p><b>Приватность.</b> Обезличенные идентификаторы избирателей используются только внутри расчётов и не публикуются; наружу выходят суммы по регионам и участкам.</p>
-        <p><b>Карта.</b> Границы — Natural Earth (общественное достояние), упрощены; состав регионов — как в данных ДЭГ.</p>
+        <p><b>Карта.</b> Состав и границы субъектов — в соответствии с Конституцией Российской Федерации (89 субъектов, включая Республику Крым, Севастополь, ДНР, ЛНР, Запорожскую и Херсонскую области). Контуры — Natural Earth (общественное достояние), упрощены. Серым показаны субъекты, где федеральная платформа ДЭГ в 2026 году не применялась.</p>
         <p class="foot">Источники: блокчейн ДЭГ-2026 (копии для наблюдателей); портал наблюдения stat.vybory.gov.ru; протоколы на izbirkom.ru; открытый набор данных и верификатор С. Слотина (feddeg); публикации В. Толстогузова (<a href="https://t.me/s/zanashepravo" target="_blank" rel="noopener">t.me/zanashepravo</a>). Код расчётов — репозиторий deg2026 (будет открыт). Автор — Xandret.</p>
       </div>
     </section>
@@ -631,7 +640,7 @@ function setMetric(m){metric=m;[...$('mlist').children].forEach((b,i)=>b.setAttr
 function paint(){
   const b=bins(metric.k);regs.forEach(r=>{paths[r.code].style.fill=colorFor(r[metric.k],b);});
   const lo=Math.min(...regs.map(r=>r[metric.k])),hi=Math.max(...regs.map(r=>r[metric.k]));const e=[lo,...b,hi];
-  $('legend').innerHTML=RAMP.map((v,i)=>`<div class="row"><span class="sw" style="background:var(${v})"></span>${dec(e[i],metric.d)} – ${dec(e[i+1],metric.d)}${metric.d?'':''} %</div>`).join('')+`<div class="row"><span class="sw" style="background:var(--nodeg)"></span>ДЭГ не было</div>`;
+  $('legend').innerHTML=RAMP.map((v,i)=>`<div class="row"><span class="sw" style="background:var(${v})"></span>${dec(e[i],metric.d)} – ${dec(e[i+1],metric.d)}${metric.d?'':''} %</div>`).join('')+`<div class="row"><span class="sw" style="background:var(--nodeg)"></span>ДЭГ не было</div><div class="row" style="color:var(--text-3);font-size:11px;margin-top:4px">Границы — по Конституции РФ</div>`;
   $('mdesc').innerHTML=`<b>${metric.t}.</b> ${metric.what} <br><span style="color:var(--text-3)">${metric.why}</span>`;
   $('mlegend').innerHTML=`<span>${dec(lo,metric.d)}</span>`+RAMP.map(v=>`<span class="sw" style="background:var(${v})"></span>`).join('')+`<span>${dec(hi,metric.d)} %</span><button class="linkbtn q" data-open-help type="button">что это?</button>`;
   $('mlegend').querySelector('[data-open-help]').onclick=openHelp;}
@@ -894,26 +903,33 @@ $('steps').innerHTML=[
   $('cryptoT').innerHTML=`<thead><tr><th>Как подтверждён итог</th><th>2026</th><th>2024</th><th>2025</th></tr></thead><tbody>${R.map(r=>`<tr><td>${r[0]}</td><td>${f(r[1])}</td><td>${f(r[2])}</td><td>${f(r[3])}</td></tr>`).join('')}</tbody><tfoot><tr><td><b>Итог подтверждён</b></td>${tot.map(v=>`<td><b>${num(v)} из ${num(v)}</b></td>`).join('')}</tr></tfoot>`;})();
 
 // ---------- хронология ----------
-const NEWS=JSON.parse($('newsData').textContent);
+const ND=JSON.parse($('newsData').textContent);const NEWS=ND.items,SRC=ND.sources.sources;
 const KINDS={all:'Все',official:'Официально',media:'СМИ',observers:'Наблюдатели',data:'Наши данные',moscow:'Москва'};
 const KCOL={official:'--accent',media:'--text-3',observers:'--serious',data:'--good',moscow:'--nodeg'};
+const STYPE={official:'официальный канал',federal_media:'крупное федеральное СМИ',regional_media:'региональное СМИ',observer:'наблюдатель',data:'наш разбор'};
 const VER={match:['Подтверждается данными','--good'],partial:['Частично / не совсем','--warn'],na:['Данными не проверяется','--text-3'],out:['Вне наших данных','--text-3'],data:['Наше наблюдение','--accent']};
+const faPlate=f=>`<div class="fa">НАСТОЯЩИЙ МАТЕРИАЛ (ИНФОРМАЦИЯ) ПРОИЗВЕДЕН, РАСПРОСТРАНЕН И (ИЛИ) НАПРАВЛЕН ИНОСТРАННЫМ АГЕНТОМ ${esc(f.reg_name.toUpperCase())} ЛИБО КАСАЕТСЯ ДЕЯТЕЛЬНОСТИ ИНОСТРАННОГО АГЕНТА ${esc(f.reg_name.toUpperCase())}. 18+</div>`;
 (function(){const c=k=>NEWS.filter(x=>x.check.v===k).length;const claims=NEWS.filter(x=>x.check.v==='match'||x.check.v==='partial').length;
-  $('tlTiles').innerHTML=[[String(NEWS.length),'событий','из официальных источников, СМИ, от наблюдателей и из наших данных'],[`${c('match')} из ${claims}`,'проверяемых заявлений подтверждаются','остальные подтверждаются частично'],[String(c('partial')),'расходятся с данными частично','например, «сбоев не зафиксировано»']]
-   .map(t=>`<div class="tile"><div class="v">${t[0]}</div><div class="l">${t[1]}</div><div class="n">${t[2]}</div></div>`).join('');})();
+  const used=new Set(NEWS.flatMap(x=>x.src.map(s=>SRC[s.ch]?SRC[s.ch].name:s.ch)));
+  $('tlTiles').innerHTML=[[String(NEWS.length),'событий',`${used.size} источников: официальные каналы, крупные и региональные СМИ, наблюдатели, наши данные`],[`${c('match')} из ${claims}`,'проверяемых заявлений подтверждаются','остальные подтверждаются частично'],[String(c('partial')),'расходятся с данными частично','например, «сбоев не зафиксировано»']]
+   .map(t=>`<div class="tile"><div class="v">${t[0]}</div><div class="l">${t[1]}</div><div class="n">${t[2]}</div></div>`).join('');
+  const groups={};Object.entries(SRC).forEach(([k,s])=>{if(s.type==='data')return;const u=NEWS.some(x=>x.src.some(z=>z.ch===k));if(!u)return;(groups[s.type]=groups[s.type]||new Set()).add(s.name+(s.fa?' (иностранный агент)':''));});
+  $('tlSources').innerHTML=Object.entries(groups).map(([k,v])=>`<li><b>${STYPE[k][0].toUpperCase()+STYPE[k].slice(1)}:</b> ${[...v].join(', ')}</li>`).join('');})();
 let tlKind='all';
 Object.entries(KINDS).forEach(([k,v])=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.setAttribute('aria-pressed',k==='all');
   b.onclick=()=>{tlKind=k;[...$('tlKinds').children].forEach(x=>x.setAttribute('aria-pressed',x===b));renderTL();};$('tlKinds').appendChild(b);});
 const DOW=['вс','пн','вт','ср','чт','пт','сб'];
+function srcLink(s){const m=SRC[s.ch]||{name:s.ch,type:'federal_media'};const ext=s.url.startsWith('http');
+  return `<span class="tlsrc">${m.fa?faPlate(m.fa):''}<a href="${esc(s.url)}"${ext?' target="_blank" rel="noopener"':''}>${esc(m.name)}${ext?' ↗':' →'}</a> <span class="tlst">${STYPE[m.type]||''}${m.fa?' · иностранный агент':''}</span></span>`;}
 function renderTL(){const items=NEWS.filter(x=>tlKind==='all'||x.kind===tlKind);let html='',day='';
   items.forEach(x=>{const d=x.dt.slice(0,10);if(d!==day){day=d;const dt=new Date(d+'T12:00:00');const vote=['2026-09-18','2026-09-19','2026-09-20'].includes(d);
       html+=`<h2 class="tlday">${+d.slice(8)} сентября, ${DOW[dt.getDay()]}${vote?' <span class="tlvote">день голосования</span>':''}</h2>`;}
-    const v=VER[x.check.v];const ext=x.url.startsWith('http');
+    const v=VER[x.check.v];
     html+=`<article class="tli k-${x.kind}"><div class="tlt">${x.approx?'≈ ':''}${x.dt.slice(11,16)}</div><div class="tlb">
-      <div class="tlmeta"><span class="tlk"><span class="dot" style="background:var(${KCOL[x.kind]})"></span>${KINDS[x.kind]}</span><span class="tls">${esc(x.source)}</span></div>
+      <div class="tlmeta"><span class="tlk"><span class="dot" style="background:var(${KCOL[x.kind]})"></span>${KINDS[x.kind]}</span></div>
       <h3>${esc(x.title)}</h3><p>${esc(x.text)}</p>
       <div class="tlc"><span class="chip"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(${v[1]})"></span>${v[0]}</span>${x.check.t?`<span class="tlct">${esc(x.check.t)}</span>`:''}</div>
-      <div class="tll"><a href="${esc(x.url)}"${ext?' target="_blank" rel="noopener"':''}>${ext?'Открыть источник ↗':'Подробнее →'}</a>${x.an.filter(a=>!x.url.includes(a)).map(a=>` · <a href="#anomalies/${a}">${a}</a>`).join('')}</div></div></article>`;});
+      <div class="tll"><span class="tlsl">Источники:</span> ${x.src.map(srcLink).join('<span class="tlsep">·</span>')}${x.an.filter(a=>!x.src.some(s=>s.url.includes(a))).map(a=>` <span class="tlsep">·</span> <a href="#anomalies/${a}">${a}</a>`).join('')}</div></div></article>`;});
   $('tl').innerHTML=html||'<p>Нет событий.</p>';}
 renderTL();
 

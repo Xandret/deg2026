@@ -1,9 +1,3 @@
-"""Геометрия карты: Natural Earth admin-1 (public domain) → упрощённые SVG-пути site/geo.json.
-
-Файл ne_10m_admin_1_states_provinces.geojson скачать вручную (naturalearthdata.com) в data/external/.
-Нужны shapely, pyproj. Проекция — равновеликая коническая Альберса (lon_0=100, lat 52/64).
-ВНИМАНИЕ: в Natural Earth коды RU-MOW/RU-MOS перепутаны (RU-MOW = Московская обл.) — сверено по площади.
-"""
 import json, sys
 from shapely.geometry import shape, mapping, MultiPolygon, Polygon
 from shapely.ops import transform
@@ -14,8 +8,12 @@ ISO2CODE = {'RU-AL':2,'RU-KR':10,'RU-KO':11,'UA-43':93,'RU-ME':12,'RU-UD':18,'RU
  'RU-ARK':29,'RU-BEL':31,'RU-VLA':33,'RU-VLG':35,'RU-KGD':39,'RU-KLU':40,'RU-KOS':44,'RU-KGN':45,'RU-LIP':48,
  'RU-MAG':49,'RU-MOW':50,'RU-MUR':51,'RU-NIZ':52,'RU-NGR':53,'RU-NVS':54,'RU-PSK':60,'RU-ROS':61,'RU-SVE':66,
  'RU-SMO':67,'RU-TOM':70,'RU-CHE':74,'RU-YAR':76,'RU-NEN':83}
+# Субъекты РФ по Конституции РФ, которых нет в слое RUS Natural Earth (границы — по административным
+# границам Natural Earth; в ДЭГ-2026 федеральная платформа там не применялась).
+EXTRA_NAMES = {'UA-43': 'Республика Крым', 'UA-40': 'Севастополь', 'UA-14': 'Донецкая Народная Республика',
+               'UA-09': 'Луганская Народная Республика', 'UA-23': 'Запорожская область', 'UA-65': 'Херсонская область'}
 g = json.load(open(sys.argv[1] if len(sys.argv) > 1 else '../data/external/ne_10m_admin_1_states_provinces.geojson', encoding='utf-8'))
-fs = [f for f in g['features'] if f['properties']['adm0_a3']=='RUS' or f['properties'].get('iso_3166_2') in ('UA-43','UA-40')]
+fs = [f for f in g['features'] if f['properties']['adm0_a3']=='RUS' or f['properties'].get('iso_3166_2') in EXTRA_NAMES]
 proj = pyproj.Transformer.from_crs('EPSG:4326', '+proj=aea +lat_1=52 +lat_2=64 +lat_0=0 +lon_0=100 +datum=WGS84 +units=m', always_xy=True)
 def fwd(x, y, z=None):
     import numpy as np
@@ -28,7 +26,8 @@ for f in fs:
     polys = list(p.geoms) if isinstance(p, MultiPolygon) else [p]
     big = max(q.area for q in polys)
     polys = [q.buffer(0) if not q.is_valid else q for q in polys if q.area > max(2.5e8, big*0.002)]   # drop tiny islands
-    geoms.append((f['properties']['iso_3166_2'], f['properties'].get('name_ru'), MultiPolygon(polys)))
+    iso = f['properties']['iso_3166_2']
+    geoms.append((iso, EXTRA_NAMES.get(iso) or f['properties'].get('name_ru'), MultiPolygon(polys)))
 from shapely.ops import unary_union
 allg = unary_union([g_ for _,_,g_ in geoms])
 minx, miny, maxx, maxy = allg.bounds

@@ -1,0 +1,82 @@
+{
+ "_note": "Статус «иностранный агент» — по реестру Минюста России; проверять перед каждой публикацией (реестр обновляется по пятницам). Материалы организаций из перечня нежелательных не используются.",
+ "_checked": "2026-09-24",
+ "sources": {
+  "cikrossii": {
+   "name": "ЦИК России",
+   "type": "official"
+  },
+  "oprf_official": {
+   "name": "Общественная палата РФ",
+   "type": "official"
+  },
+  "gosuslugi": {
+   "name": "Госуслуги",
+   "type": "official"
+  },
+  "tass_agency": {
+   "name": "ТАСС",
+   "type": "federal_media"
+  },
+  "interfaxonline": {
+   "name": "Интерфакс",
+   "type": "federal_media"
+  },
+  "interfax.ru": {
+   "name": "Интерфакс (сайт)",
+   "type": "federal_media"
+  },
+  "rbc_news": {
+   "name": "РБК",
+   "type": "federal_media"
+  },
+  "kommersant": {
+   "name": "Коммерсантъ",
+   "type": "federal_media"
+  },
+  "vedomosti": {
+   "name": "Ведомости",
+   "type": "federal_media"
+  },
+  "gazetaru": {
+   "name": "Газета.Ru",
+   "type": "federal_media"
+  },
+  "mk_ru": {
+   "name": "Московский комсомолец",
+   "type": "federal_media"
+  },
+  "rtvimain": {
+   "name": "RTVI",
+   "type": "federal_media"
+  },
+  "fontankaspb": {
+   "name": "Фонтанка",
+   "type": "regional_media"
+  },
+  "belpressa": {
+   "name": "БелПресса",
+   "type": "regional_media"
+  },
+  "stolicaonego": {
+   "name": "Столица на Онего",
+   "type": "regional_media"
+  },
+  "zanashepravo": {
+   "name": "В. Толстогузов, «Защищаем наше право»",
+   "type": "observer"
+  },
+  "golosinfo": {
+   "name": "Движение «Голос»",
+   "type": "observer",
+   "fa": {
+    "reg_name": "Движение в защиту прав избирателей «Голос»",
+    "basis": "реестр иностранных агентов Минюста России"
+   }
+  },
+  "deg2026": {
+   "name": "Наши данные",
+   "type": "data"
+  }
+ }
+}
