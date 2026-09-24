@@ -121,7 +121,7 @@ def iter_dump_lines(path):
         yield from f
 
 
-def extract(src, only=None, name=None):
+def extract(src, only=None, name=None, defer=False):
     want = set(only) if only else targets(src)
     OUT_R.mkdir(parents=True, exist_ok=True)
     name = name or src
@@ -129,6 +129,7 @@ def extract(src, only=None, name=None):
     small = len(want) <= 50
     pats = [w.encode() for w in want]
     n_blocks = n_tx = moved = 0
+    deferred, last_block = [], None
     with gzip.open(tmp, "wb", compresslevel=3) as out:
         for line in iter_dump_lines(SOURCES[src]):
             if not line.strip():
@@ -145,11 +146,20 @@ def extract(src, only=None, name=None):
             if not keep and not tail:
                 continue
             moved += sum(1 for t in tail if keep)      # results, после которых в блоке шли другие транзакции
+            if defer:                                   # --defer-results: results — в отдельный блок в самом конце
+                deferred += tail; tail = []
+                if not keep:
+                    continue
             block["transactions"] = keep + tail
+            last_block = block
             out.write(orjson.dumps(block) + b"\n")
             n_blocks += 1; n_tx += len(keep) + len(tail)
+        if deferred:
+            final = dict(last_block or {}, transactions=deferred)
+            final["height"] = (last_block or {}).get("height", 0) + 1
+            out.write(orjson.dumps(final) + b"\n"); n_blocks += 1; n_tx += len(deferred)
     os.replace(tmp, dst)
-    info = dict(src=src, name=name, contracts=len(want), blocks=n_blocks, transactions=n_tx, results_moved_in_block=moved)
+    info = dict(src=src, name=name, deferred_results=len(deferred), contracts=len(want), blocks=n_blocks, transactions=n_tx, results_moved_in_block=moved)
     (OUT_R / f"{name}.extract.json").write_text(json.dumps(info, ensure_ascii=False, indent=1), encoding="utf-8")
     print(info, flush=True)
 
@@ -213,19 +223,70 @@ def verify_inner(src, allow_bad=False, workers=1, full=False):
           f"не совпал {sum(1 for r in records if r['results_match'] is False)}", flush=True)
 
 
+CLASSES = [("first_pass", "подтверждён сразу"),
+           ("reordered_block", "подтверждён после перестановки results в конец блока"),
+           ("reordered_late", "подтверждён после переноса results за расшифровку из следующего блока"),
+           ("without_bad_shape", "подтверждён без испорченного шифротекста (контракт принял, система не посчитала)"),
+           ("without_bad_zkp", "подтверждён без голоса с неверным доказательством (полная проверка)"),
+           ("empty", "пустое голосование (0 бюллетеней), итог — нули"),
+           ("pending", "не проверено")]
+
+
+def summary():
+    """Итог по каждому контракту: какой проверкой подтверждён → data/derived/crypto_verify/summary.json."""
+    first = {}
+    with open(OUT_V / "statuses.csv", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            first[(r["src"], r["contract"])] = r["status"].startswith("RESULTS VERIFIED")
+    year = lambda s: {"edg2024": 2024, "edg2025": 2025}.get(s, 2026)
+    cls = {k: "first_pass" if ok else "pending" for k, ok in first.items()}
+    def load(name):
+        p = OUT_R / f"{name}.verify.json"
+        return json.loads(p.read_text(encoding="utf-8"))["records"] if p.exists() else []
+    src_of = {c: s for (s, c) in first}
+    for s in SOURCES:
+        for r in load(s):
+            k = (s, r["contract"])
+            if cls.get(k) == "pending":
+                if r["final_result_verified"]:
+                    cls[k] = "reordered_block"
+                elif r["accepted"] == 0 and r["results_match"]:
+                    cls[k] = "empty"
+    for name, c in (("late-2026", "reordered_late"),):
+        for r in load(name):
+            if r["final_result_verified"]:
+                cls[(src_of[r["contract"]], r["contract"])] = c
+    for p in OUT_R.glob("*.allowbad*.verify.json"):
+        for r in json.loads(p.read_text(encoding="utf-8"))["records"]:
+            pd_ok = r.get("partial_decryption_ok") or {}
+            if r["results_match"] and pd_ok and all(pd_ok.values()):
+                cls[(src_of[r["contract"]], r["contract"])] = "without_bad_zkp" if r.get("bad_zkp") else "without_bad_shape"
+    out = {}
+    for (s, c), v in cls.items():
+        out.setdefault(year(s), {k: 0 for k, _ in CLASSES}); out[year(s)][v] += 1
+    detail = [dict(year=year(s), src=s, contract=c, cls=v) for (s, c), v in sorted(cls.items()) if v != "first_pass"]
+    res = dict(labels=dict(CLASSES), by_year=out, not_first_pass=detail)
+    (OUT_V / "summary.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
+    for y, d in sorted(out.items()):
+        print(y, sum(d.values()), d)
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=["parse", "extract", "verify", "_inner"])
+    ap.add_argument("mode", choices=["parse", "extract", "verify", "summary", "_inner"])
     ap.add_argument("--src", default=",".join(SOURCES))
     ap.add_argument("--only", default="")
     ap.add_argument("--name", default="", help="имя выходного дампа (для --only)")
     ap.add_argument("--parallel", type=int, default=1, help="сколько источников обрабатывать одновременно")
     ap.add_argument("--allow-bad-ballots", action="store_true")
     ap.add_argument("--workers", type=int, default=1)
+    ap.add_argument("--defer-results", action="store_true", help="results — в отдельный последний блок (расшифровка пришла в следующем блоке)")
     ap.add_argument("--full", action="store_true", help="полная проверка: подписи, слепые подписи, ZKP бюллетеней")
     a = ap.parse_args()
     if a.mode == "parse":
         parse_logs(); return
+    if a.mode == "summary":
+        summary(); return
     srcs = a.src.split(",")
     if a.parallel > 1 and len(srcs) > 1 and a.mode in ("extract", "verify"):
         from concurrent.futures import ProcessPoolExecutor
@@ -237,7 +298,7 @@ def main():
         return
     for src in srcs:
         if a.mode == "extract":
-            extract(src, [x for x in a.only.split(",") if x] or None, a.name or None)
+            extract(src, [x for x in a.only.split(",") if x] or None, a.name or None, a.defer_results)
         elif a.mode == "verify":
             verify(src, a.allow_bad_ballots, a.workers, a.full)
         else:
