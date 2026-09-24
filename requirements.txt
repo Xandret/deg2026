@@ -1,0 +1,10 @@
+duckdb>=1.1
+pyarrow>=17
+pandas>=2.2
+orjson>=3.10
+requests>=2.32
+beautifulsoup4>=4.12
+lxml>=5.2
+matplotlib>=3.9
+tqdm>=4.66
+pytest>=8

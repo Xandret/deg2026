@@ -1,0 +1,25 @@
+# --- Сырые и чувствительные данные: НИКОГДА не коммитить ---
+ChatExport*/
+*.zip
+*.tar
+*.tar.gz
+*.jsonl
+*.jsonl.gz
+edg_day*/
+*.har
+
+# --- Производные данные (воспроизводимы из кода) ---
+data/derived/
+data/external/
+*.duckdb
+*.duckdb.wal
+*.parquet
+
+# --- Окружение и логи ---
+.venv/
+__pycache__/
+*.pyc
+logs/
+.ipynb_checkpoints/
+.env
+secrets*
