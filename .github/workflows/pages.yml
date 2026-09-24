@@ -1,0 +1,33 @@
+# Зеркало сайта на GitHub Pages. Запускается ТОЛЬКО вручную (Actions → «Сайт на GitHub Pages» → Run workflow),
+# чтобы ничего не ушло в открытый доступ до согласования с ОП (решение №30).
+# Публикуется готовая папка site/public как есть: её собирает site/build.py локально (данные из дампов в CI нет).
+name: Сайт на GitHub Pages
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Проверка сборки
+        run: |
+          test -f site/public/index.html
+          test -f site/public/data/manifest.json
+          test -f site/public/deg2026_open_data.zip
+          grep -q 'name="robots"' site/public/index.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/public
+      - id: deployment
+        uses: actions/deploy-pages@v4

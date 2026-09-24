@@ -26,3 +26,6 @@ secrets*
 
 # сборка сайта (генерируется site/build.py)
 site/dist/
+
+# публичный сайт (site/public) коммитим целиком — его выкладывает зеркало GitHub Pages
+!site/public/deg2026_open_data.zip

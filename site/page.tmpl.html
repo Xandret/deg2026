@@ -294,6 +294,12 @@ td:first-child{color:var(--text)}
 .btn:hover{background:var(--panel-3)}
 .btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.pri:hover{filter:brightness(1.1)}
+.hint{color:var(--text-3);font-size:var(--fs-sm);margin:0 0 var(--s5)}
+.dlrow{display:flex;gap:var(--s3);flex-wrap:wrap;margin:var(--s7) 0 var(--s3)}
+.btn.dl{display:inline-flex;align-items:center;text-decoration:none;height:44px}
+.fdesc{color:var(--text-3);font-size:var(--fs-xs);margin-top:2px;white-space:normal;min-width:220px}
+#filesT td:first-child a,#filesT .fname{font-weight:600;overflow-wrap:anywhere}
+@media (max-width:600px){#filesT th:nth-child(2),#filesT td:nth-child(2){display:none}.fdesc{min-width:0}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -308,6 +314,7 @@ td:first-child{color:var(--text)}
       <a href="#timeline">Хронология</a>
       <a href="#paper">Результаты</a>
       <a href="#verify">Проверка</a>
+      <a href="#data">Данные</a>
     </nav>
     <button class="iconbtn" id="help" type="button" aria-label="Как пользоваться картой" title="Как пользоваться"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7.6 7.6a2.5 2.5 0 114 2c-.9.6-1.6 1-1.6 2.1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="10" cy="14.6" r="1" fill="currentColor"/></svg></button>
     <button class="iconbtn" id="theme" type="button" aria-label="Сменить тему" title="Светлая / тёмная тема"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 3a7 7 0 000 14z" fill="currentColor"/></svg></button>
@@ -490,6 +497,29 @@ td:first-child{color:var(--text)}
         <p class="foot">Источники: блокчейн ДЭГ-2026 (копии для наблюдателей); портал наблюдения stat.vybory.gov.ru; протоколы на izbirkom.ru; открытый набор данных и верификатор С. Слотина (feddeg); публикации В. Толстогузова (<a href="https://t.me/s/zanashepravo" target="_blank" rel="noopener">t.me/zanashepravo</a>). Код расчётов — репозиторий deg2026 (будет открыт). Автор — Xandret.</p>
       </div>
     </section>
+
+    <!-- ДАННЫЕ -->
+    <section class="view read" id="v-data" hidden>
+      <div class="page">
+        <h1>Скачать данные</h1>
+        <p>Все числа на этом сайте можно скачать и пересчитать. Данные открыты по лицензии <a href="https://creativecommons.org/licenses/by/4.0/deed.ru" target="_blank" rel="noopener">CC BY 4.0</a>: их можно использовать в работах, статьях и отчётах, указав источник «ДЭГ-2026 в открытых данных (deg2026 / Xandret)».</p>
+        <div class="dlrow">
+          <a class="btn pri dl" id="dlXlsx" href="data/deg2026_tables.xlsx" download>Таблицы для Excel</a>
+          <a class="btn dl" id="dlZip" href="deg2026_open_data.zip" download>Весь набор (ZIP)</a>
+        </div>
+        <p class="hint">Для просмотра в Excel удобнее книга: одна вкладка — одна таблица, заголовки по-русски. В архиве — все файлы ниже, включая список всех голосований и криптопроверку.</p>
+        <h2>Файлы по отдельности</h2>
+        <div class="box tscroll"><table id="filesT"></table></div>
+        <h2>Как читать</h2>
+        <p><b>Формат.</b> CSV — текст в кодировке UTF-8, разделитель — запятая, первая строка — названия колонок. Описание колонок — в файле <a href="data/README.md" target="_blank" rel="noopener">README.md</a>. Если Excel показал всё в одном столбце, откройте файл через «Данные → Из текста/CSV» и выберите разделитель «запятая».</p>
+        <p><b>Люди и бюллетени.</b> В колонках регионов и участков «бюллетени» — число людей, получивших бюллетень (по «главному» голосованию участка); «бюллетеней всего» — сумма по всем выборам, в которых человек участвовал. Методика — в разделе <a href="#verify">«Проверка»</a>.</p>
+        <p><b>Бумага и ДЭГ.</b> Цифры участков получены вычитанием: итог окружной комиссии минус отдельный протокол ДЭГ. Есть для 36 округов, где официальные протоколы удалось получить и сверить.</p>
+        <h2>Что не публикуется</h2>
+        <p>Обезличенные идентификаторы избирателей, отпечатки списков и сами журналы блокчейна в набор не входят: наружу выходят только суммы по регионам, участкам и голосованиям. Журналы ЦИК выдаёт наблюдателям сам; по ним и коду из репозитория расчёт можно повторить.</p>
+        <p>Сайт не использует cookies и счётчики посещений. Выбранная тема запоминается только в вашем браузере.</p>
+        <p class="foot">Как ссылаться: <i>ДЭГ-2026 в открытых данных: результаты федерального ДЭГ 18–20 сентября 2026 г. по данным блокчейна / Xandret. — 2026. — Данные: CC BY 4.0.</i> Обновлено: <span id="dataDate"></span>.</p>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -510,6 +540,7 @@ td:first-child{color:var(--text)}
 <script type="application/json" id="data">__DATA__</script>
 <script type="application/json" id="resData">__RES__</script>
 <script type="application/json" id="newsData">__NEWS__</script>
+<script type="application/json" id="filesData">__FILES__</script>
 <script>
 (function(){
 "use strict";
@@ -933,8 +964,20 @@ function renderTL(){const items=NEWS.filter(x=>tlKind==='all'||x.kind===tlKind);
   $('tl').innerHTML=html||'<p>Нет событий.</p>';}
 renderTL();
 
+// ---------- данные ----------
+(function(){const F=JSON.parse($('filesData').textContent);
+  const sz=b=>b>=1048576?(b/1048576).toLocaleString('ru-RU',{maximumFractionDigits:1})+' МБ':Math.max(1,Math.round(b/1024))+' КБ';
+  const kind=f=>f.endsWith('.xlsx')?'Excel':f.endsWith('.json')?'JSON':'CSV';
+  $('dlZip').textContent='Весь набор (ZIP, '+sz(F.zip_bytes)+')';
+  const x=F.files.find(f=>f.file.endsWith('.xlsx'));if(x)$('dlXlsx').textContent='Таблицы для Excel ('+sz(x.bytes)+')';
+  $('dataDate').textContent=F.date||'';
+  if(F.preview){F.files=F.files.filter(f=>!f.file.endsWith('.xlsx'));
+    document.querySelector('.dlrow').outerHTML='<p class="note">Предварительная версия для согласования: скачивание файлов включится на опубликованном сайте. Ниже — состав набора.</p>';
+    document.querySelectorAll('#v-data a[href^="data/"]').forEach(a=>a.replaceWith(Object.assign(document.createElement('b'),{textContent:a.textContent})));}
+  $('filesT').innerHTML=`<thead><tr><th>Файл и содержание</th><th>Формат</th><th>Строк</th><th>Размер</th></tr></thead><tbody>${F.files.map(f=>`<tr><td>${F.preview?`<b class="fname">${esc(f.file)}</b>`:`<a href="data/${encodeURIComponent(f.file)}" download>${esc(f.file)}</a>`}<div class="fdesc">${esc(f.desc)}</div></td><td>${kind(f.file)}</td><td>${f.rows==null?'—':nf.format(f.rows)}</td><td>${sz(f.bytes)}</td></tr>`).join('')}</tbody>`;})();
+
 // ---------- маршруты ----------
-const VIEWS=['map','about','regions','anomalies','timeline','paper','verify'];
+const VIEWS=['map','about','regions','anomalies','timeline','paper','verify','data'];
 function route(){const h=location.hash.slice(1)||'map';const [v,sub]=h.split('/');const view=VIEWS.includes(v)?v:'map';
   VIEWS.forEach(n=>{$('v-'+n).hidden=n!==view;});
   document.querySelectorAll('.nav a').forEach(a=>a.getAttribute('href')==='#'+view?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
