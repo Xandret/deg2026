@@ -1,0 +1,25 @@
+flowchart LR
+  subgraph IN["Данные (data/derived)"]
+    direction TB
+    J1["site/site_data.json"]
+    J2["site/elections.json"]
+    J3["site/social.json"]
+    J4["site/monitor.json"]
+    J5["deg_results · izbirkom_snapshot"]
+    J6["data/news/*.json"]
+    M["site/public/data/manifest.json"]
+  end
+  T["site/page.tmpl.html<br/>шаблон: разметка, стили, JS"]
+  G["site/geo.json<br/>89 субъектов"]
+  B{{"site/build.py"}}
+  IN --> B
+  T --> B
+  G --> B
+  B --> D1["site/dist/deg2026-site.html<br/>Artifact (режим согласования)"]
+  B --> P["site/public/<br/>index.html · 404 · robots · data · ZIP"]
+  B -- "--preview --pub" --> PV["папка deg2026-preview"]
+  P -- "по умолчанию" --> NI["noindex · Disallow: /"]
+  P -- "--launch --base-url" --> OPN["открыт для поисковиков"]
+  PV --> GP1["github.com/Xandret/deg2026-preview<br/>→ GitHub Pages (временная ссылка)"]
+  P --> RU["хостинг .ru (после согласования)"]
+  P --> GP2["зеркало GitHub Pages<br/>(workflow вручную)"]

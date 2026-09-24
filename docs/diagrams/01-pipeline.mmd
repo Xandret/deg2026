@@ -1,0 +1,47 @@
+flowchart LR
+  subgraph SRC["Источники"]
+    J26["Журнал ДЭГ-2026<br/>7 цепочек (edg_day3)"]
+    J25["Журналы 2024, 2025"]
+    PRT["Портал наблюдения"]
+    IZB["izbirkom.ru<br/>HAR + снимок"]
+    SLO["Слотин: таблицы<br/>и верификатор"]
+    RST["Росстат"]
+    TGM["Telegram-каналы"]
+  end
+
+  PB["parse_blocks<br/>parse_dump_json"] --> DB[("build_db<br/>DuckDB")]
+  CD["make_chain_dumps"] --> CV["crypto_verify<br/>crypto_recheck"]
+  POR["portal"]
+  VS["validate_slotin"]
+
+  subgraph CALC["Расчёты по базе"]
+    SD["site_data"]
+    DYN["dynamics"]
+    DR["deg_results"]
+    AR["all_results"]
+    MON["monitor"]
+  end
+  IS["izbirkom_snapshot<br/>reconcile_izbirkom"]
+  RSOC["regions_social"]
+  NEWS["news_scrape<br/>+ ручной отбор"]
+
+  EX["export_open_data"] --> BLD["site/build.py"] --> SITE["site/public<br/>сайт + данные"]
+
+  J26 --> PB
+  J25 --> PB
+  J26 --> CD
+  SLO --> VS
+  DB --> VS
+  PRT --> POR
+  DB --> CALC
+  POR --> CALC
+  IZB --> IS
+  RST --> RSOC
+  TGM --> NEWS
+  CALC --> IS
+  CALC --> RSOC
+  CALC --> EX
+  IS --> EX
+  RSOC --> EX
+  NEWS --> EX
+  CV --> EX
