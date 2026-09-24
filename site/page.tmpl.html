@@ -1,0 +1,881 @@
+<title>ДЭГ-2026 в открытых данных</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+/* Токены: тёмная тема по умолчанию (тон DeepStateMAP), светлая — по переключателю */
+:root{
+  color-scheme:dark;
+  --bg:#000000;--map:#0f1013;--panel:#282a2f;--panel-2:#1f2125;--panel-3:#33363c;
+  --text:#ffffff;--text-2:#d4d4d5;--text-3:#a3a4a9;
+  --line:rgba(255,255,255,.12);--line-2:rgba(255,255,255,.24);--strong:#ffffff;
+  --link:#8ab4ff;--accent:#3987e5;--wash:rgba(255,255,255,.06);--wash-2:rgba(57,135,229,.18);
+  --r1:#184f95;--r2:#256abf;--r3:#3987e5;--r4:#86b6ef;--r5:#cde2fb;
+  --nodeg:#34363c;--edge:#000000;--sel:#ffffff;
+  --deg:#3987e5;--paper:#d95926;--grid:#34363c;--axis:#4a4c52;
+  --good:#0ca30c;--warn:#fab219;--serious:#ec835a;--critical:#d03b3b;
+  --shadow:0 4px 8px rgba(0,0,0,.35),0 12px 32px rgba(0,0,0,.35);
+  --font:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  --fs-xs:11px;--fs-sm:12.5px;--fs-md:14px;--fs-lg:15.4px;--fs-xl:20px;--fs-2xl:28px;
+  --s1:2px;--s2:6px;--s3:8px;--s4:10px;--s5:12px;--s6:14px;--s7:16px;
+  --rad-xs:8px;--rad-sm:12px;--dur:150ms;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){color-scheme:dark;--bg:#000000;--map:#0f1013;--panel:#282a2f;--text:#ffffff;--text-2:#d4d4d5}
+}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#000000;--map:#0f1013;--panel:#282a2f;--text:#ffffff;--text-2:#d4d4d5}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f4f4f5;--map:#e9e9ec;--panel:#ffffff;--panel-2:#f4f4f5;--panel-3:#e6e6e9;
+  --text:#0b0b0b;--text-2:#3a3a3d;--text-3:#5f5f64;
+  --line:rgba(0,0,0,.12);--line-2:rgba(0,0,0,.24);--strong:#0b0b0b;
+  --link:#1c5cab;--accent:#2a78d6;--wash:rgba(0,0,0,.05);--wash-2:rgba(42,120,214,.12);
+  --r1:#cde2fb;--r2:#86b6ef;--r3:#3987e5;--r4:#1c5cab;--r5:#0d366b;
+  --nodeg:#d2d2d6;--edge:#ffffff;--sel:#0b0b0b;
+  --deg:#2a78d6;--paper:#eb6834;--grid:#e1e0d9;--axis:#c3c2b7;
+  --shadow:0 4px 8px rgba(51,51,78,.10),0 12px 32px rgba(51,51,78,.12);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:400 var(--fs-md)/1.5 var(--font);-webkit-text-size-adjust:100%;overflow:hidden}
+a{color:var(--link);text-underline-offset:2px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--strong);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- каркас ---------- */
+.app{height:100vh;height:100dvh;display:flex;flex-direction:column}
+.bar{flex:none;display:flex;align-items:center;gap:var(--s5);padding:0 var(--s5);height:48px;background:var(--bg);border-bottom:1px solid var(--line);position:relative;z-index:30}
+.brand{display:flex;align-items:center;gap:var(--s3);font-weight:700;font-size:var(--fs-lg);white-space:nowrap;letter-spacing:.01em}
+.brand .mark{min-width:22px;padding:0 5px;height:22px;border-radius:6px;background:var(--accent);display:grid;place-items:center;color:#fff;font-size:11px;font-weight:800}
+.brand small{font-weight:400;color:var(--text-3);font-size:var(--fs-sm)}
+.nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0}
+.nav::-webkit-scrollbar{display:none}
+.nav a{flex:none;display:flex;align-items:center;height:32px;padding:0 var(--s4);border-radius:var(--rad-xs);color:var(--text-2);text-decoration:none;font-size:var(--fs-md);transition:background var(--dur),color var(--dur)}
+.nav a:hover{background:var(--wash);color:var(--text)}
+.nav a[aria-current="page"]{background:var(--panel);color:var(--text);font-weight:600}
+.iconbtn{flex:none;width:36px;height:36px;border-radius:var(--rad-xs);border:1px solid var(--line);background:transparent;display:grid;place-items:center;cursor:pointer;color:var(--text-2);transition:background var(--dur)}
+.iconbtn:hover{background:var(--wash);color:var(--text)}
+.iconbtn svg{width:18px;height:18px}
+main{flex:1;min-height:0;position:relative}
+.view{position:absolute;inset:0}
+.view[hidden]{display:none}
+@media (max-width:760px){
+  .bar{flex-wrap:wrap;height:auto;padding:var(--s3) var(--s5) 0;gap:var(--s2) var(--s3)}
+  .brand{flex:1}
+  .nav{order:3;flex:1 0 100%;padding-bottom:var(--s2);margin:0 calc(-1*var(--s5));padding-left:var(--s5);padding-right:var(--s5)}
+  .nav a{height:34px}
+}
+
+/* ---------- карта ---------- */
+#v-map{background:var(--map);overflow:hidden}
+#map{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+#map.drag{cursor:grabbing}
+#map path{stroke:var(--edge);stroke-width:.7;vector-effect:non-scaling-stroke;stroke-linejoin:round;transition:fill .25s}
+#map path.deg{cursor:pointer}
+#map path.deg:hover{stroke:var(--sel);stroke-width:1.2}
+#map path.on{stroke:var(--sel);stroke-width:2.2}
+#map .mk circle{fill:var(--panel);stroke:var(--strong);stroke-width:1.5;vector-effect:non-scaling-stroke;cursor:pointer}
+#map .mk text{font:700 11px var(--font);fill:var(--text);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+#map .lbl{font:600 10px var(--font);fill:var(--text);paint-order:stroke;stroke:var(--map);stroke-width:3px;pointer-events:none;text-anchor:middle}
+
+.float{position:absolute;background:var(--panel);border:1px solid var(--line);border-radius:var(--rad-sm);box-shadow:var(--shadow);z-index:5}
+.side{top:var(--s5);left:var(--s5);width:300px;max-height:calc(100% - 24px);overflow:auto;padding:var(--s6)}
+.side h1{font-size:var(--fs-lg);margin:0 0 2px;line-height:1.3}
+.side .sub{margin:0 0 var(--s5);color:var(--text-3);font-size:var(--fs-sm)}
+.label{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin:0 0 var(--s2);font-weight:600}
+.mlist{display:flex;flex-direction:column;gap:2px;margin:0 0 var(--s5)}
+.mlist button{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);width:100%;text-align:left;border:0;background:transparent;border-radius:var(--rad-xs);padding:7px var(--s4);cursor:pointer;color:var(--text-2);transition:background var(--dur)}
+.mlist button:hover{background:var(--wash);color:var(--text)}
+.mlist button[aria-pressed="true"]{background:var(--wash-2);color:var(--text);font-weight:600;box-shadow:inset 3px 0 0 var(--accent)}
+.mlist .nat{font-size:var(--fs-sm);color:var(--text-3);font-weight:400;font-variant-numeric:tabular-nums}
+.mdesc{font-size:var(--fs-sm);color:var(--text-2);background:var(--panel-2);border-radius:var(--rad-xs);padding:var(--s4);margin:0 0 var(--s5)}
+.mdesc b{color:var(--text)}
+.legend{display:flex;flex-direction:column;gap:3px;font-size:var(--fs-sm);color:var(--text-2);font-variant-numeric:tabular-nums}
+.legend .row{display:flex;align-items:center;gap:var(--s3)}
+.sw{flex:none;display:inline-block;width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px var(--line-2)}
+.hint{font-size:var(--fs-sm);color:var(--text-3);margin:var(--s5) 0 0;display:flex;gap:var(--s2);align-items:flex-start}
+.linkbtn{border:0;background:none;padding:0;color:var(--link);cursor:pointer;text-decoration:underline;text-underline-offset:2px;font-size:inherit}
+.tot{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2);margin:0 0 var(--s5)}
+.tot div{background:var(--panel-2);border-radius:var(--rad-xs);padding:var(--s3) var(--s4)}
+.tot b{display:block;font-size:var(--fs-lg);font-variant-numeric:tabular-nums}
+.tot span{font-size:var(--fs-xs);color:var(--text-3)}
+
+.zoom{position:absolute;right:var(--s5);bottom:var(--s5);display:flex;flex-direction:column;gap:var(--s2);z-index:6}
+#v-map:has(.sheet[data-state="open"]) .zoom{right:428px}
+.zoom button{width:40px;height:40px;border-radius:var(--rad-xs);border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow);cursor:pointer;display:grid;place-items:center;color:var(--text);font-size:18px;line-height:1;transition:background var(--dur)}
+.zoom button:hover{background:var(--panel-3)}
+.zoom svg{width:18px;height:18px}
+.presets{position:absolute;left:50%;transform:translateX(-50%);bottom:var(--s5);display:flex;gap:2px;padding:3px;z-index:6;border-radius:var(--rad-sm)}
+.presets button{border:0;background:transparent;color:var(--text-2);padding:6px var(--s4);border-radius:var(--rad-xs);cursor:pointer;font-size:var(--fs-sm);white-space:nowrap}
+.presets button:hover{background:var(--wash);color:var(--text)}
+.presets button[aria-pressed="true"]{background:var(--panel-3);color:var(--text);font-weight:600}
+
+/* панель региона: справа на компьютере, выдвижная снизу на телефоне */
+.sheet{top:var(--s5);right:var(--s5);bottom:var(--s5);width:400px;display:flex;flex-direction:column;overflow:hidden;transition:transform .22s ease,opacity .15s}
+.sheet[data-state="hidden"]{transform:translateX(calc(100% + 24px));opacity:0;pointer-events:none}
+.sheet .grab{display:none}
+.sheet .head{flex:none;display:flex;align-items:flex-start;gap:var(--s3);padding:var(--s6) var(--s6) var(--s3)}
+.sheet .head h2{margin:0;font-size:var(--fs-xl);line-height:1.2;flex:1}
+.sheet .body{flex:1;overflow:auto;padding:0 var(--s6) var(--s6);overscroll-behavior:contain}
+.meta{font-size:var(--fs-sm);color:var(--text-3);margin:0 0 var(--s5)}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2);margin:0 0 var(--s6)}
+.kpi{background:var(--panel-2);border-radius:var(--rad-xs);padding:var(--s3) var(--s4);border:1px solid transparent}
+.kpi.cur{border-color:var(--accent)}
+.kpi .v{font-size:var(--fs-xl);font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:var(--fs-sm);color:var(--text-2)}
+.kpi .c{font-size:var(--fs-xs);color:var(--text-3)}
+.chart{margin:0 0 var(--s7)}
+.chart h3{font-size:var(--fs-md);margin:0 0 2px}
+.chart .cap{font-size:var(--fs-sm);color:var(--text-3);margin:0 0 var(--s2)}
+.chart svg{display:block;width:100%;overflow:visible}
+.chart svg text{font:var(--fs-xs) var(--font);fill:var(--text-3)}
+.lk{display:flex;gap:var(--s5);flex-wrap:wrap;font-size:var(--fs-sm);color:var(--text-2);margin:0 0 var(--s2)}
+.lk i{display:inline-block;width:14px;height:0;border-top:2px solid;vertical-align:4px;margin-right:var(--s2)}
+.lk i.dash{border-top-style:dashed}
+.lk i.dot{width:10px;height:10px;border:0;border-radius:50%;vertical-align:-1px}
+table{border-collapse:collapse;width:100%;font-size:var(--fs-sm)}
+th,td{padding:6px var(--s3);text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+th{font-size:var(--fs-xs);color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;vertical-align:bottom;white-space:normal}
+td{font-variant-numeric:tabular-nums;color:var(--text-2)}
+td:first-child{color:var(--text)}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.chips{display:flex;gap:var(--s2);flex-wrap:wrap;margin:0 0 var(--s5)}
+
+/* мобильная раскладка карты */
+.mchips{display:none}
+.mlegend{display:none}
+@media (max-width:760px){
+  .side{display:none}
+  .mchips{display:flex;position:absolute;top:var(--s3);left:0;right:0;gap:var(--s2);overflow-x:auto;padding:0 var(--s5);z-index:6;scrollbar-width:none}
+  .mchips::-webkit-scrollbar{display:none}
+  .mchips button{flex:none;height:36px;padding:0 var(--s5);border-radius:18px;border:1px solid var(--line);background:var(--panel);color:var(--text-2);box-shadow:var(--shadow);cursor:pointer;font-size:var(--fs-md)}
+  .mchips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .mlegend{display:flex;position:absolute;left:var(--s5);bottom:var(--s5);z-index:6;padding:var(--s3) var(--s4);gap:var(--s2);align-items:center;flex-wrap:wrap;max-width:calc(100% - 80px);font-size:var(--fs-xs);color:var(--text-2)}
+  .mlegend .sw{width:12px;height:12px}
+  .mlegend .q{margin-left:var(--s2)}
+  .presets{top:52px;bottom:auto;left:var(--s5);transform:none}
+  .zoom{bottom:auto;top:52px}
+  .zoom .fitbtn{display:none}
+  .sheet{top:auto;left:0;right:0;bottom:0;width:auto;height:88%;border-radius:var(--rad-sm) var(--rad-sm) 0 0;border-bottom:0;z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+  .sheet[data-state="hidden"]{transform:translateY(100%)}
+  .sheet[data-state="peek"]{transform:translateY(calc(100% - 132px))}
+  .sheet[data-state="full"]{transform:none}
+  .sheet .grab{display:flex;flex:none;justify-content:center;align-items:center;height:22px;border:0;background:none;cursor:pointer;width:100%;touch-action:none}
+  .sheet .grab::before{content:"";width:40px;height:4px;border-radius:2px;background:var(--line-2)}
+  .sheet .head{padding-top:var(--s1)}
+  .sheet[data-state="peek"] .body{overflow:hidden}
+}
+
+/* ---------- страницы для чтения ---------- */
+.read{overflow:auto;-webkit-overflow-scrolling:touch;background:var(--bg)}
+.page{max-width:900px;margin:0 auto;padding:var(--s7) var(--s7) 64px}
+.page h1{font-size:clamp(24px,4.5vw,34px);line-height:1.15;margin:var(--s5) 0 var(--s4);letter-spacing:-.01em}
+.page h2{font-size:var(--fs-xl);margin:40px 0 var(--s4);line-height:1.25}
+.page h3{font-size:var(--fs-lg);margin:0 0 var(--s2)}
+.page p,.page li{font-size:15.5px;line-height:1.6;color:var(--text-2)}
+.page p{margin:0 0 var(--s5);max-width:68ch}
+.page .lede{font-size:17px;color:var(--text-2)}
+.page ul{padding-left:20px;margin:0 0 var(--s5)}
+.page b{color:var(--text)}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:var(--rad-sm);padding:var(--s7)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:var(--s3);margin:var(--s5) 0}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:var(--rad-sm);padding:var(--s6)}
+.tile .v{font-size:clamp(22px,6vw,var(--fs-2xl));font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.tile .l{font-size:var(--fs-md);color:var(--text);margin-top:var(--s2)}
+.tile .n{font-size:var(--fs-sm);color:var(--text-3);margin-top:var(--s1)}
+.flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s3);margin:var(--s5) 0 var(--s3);counter-reset:st}
+.flow .st{background:var(--panel);border:1px solid var(--line);border-radius:var(--rad-sm);padding:var(--s6);position:relative}
+.flow .st::before{counter-increment:st;content:counter(st);display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:12px;margin-bottom:var(--s3)}
+.flow .st h3{font-size:var(--fs-md)}
+.flow .st p{font-size:var(--fs-sm);margin:0;line-height:1.5}
+.flow .st .rec{margin-top:var(--s3);font-size:var(--fs-xs);color:var(--text-3);border-top:1px solid var(--line);padding-top:var(--s3)}
+@media (max-width:760px){.flow{grid-template-columns:1fr 1fr}}
+@media (max-width:420px){.flow{grid-template-columns:1fr}}
+.defs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:var(--s3)}
+.def{background:var(--panel);border:1px solid var(--line);border-radius:var(--rad-sm);padding:var(--s6)}
+.def h3{display:flex;justify-content:space-between;gap:var(--s3);align-items:baseline}
+.def h3 span{font-size:var(--fs-sm);font-weight:400;color:var(--text-3);white-space:nowrap}
+.def p{font-size:var(--fs-md);margin:0 0 var(--s2)}
+.def .why{font-size:var(--fs-sm);color:var(--text-3);margin:0}
+.gloss{display:grid;grid-template-columns:max-content 1fr;gap:var(--s3) var(--s6);font-size:15px;margin:0}
+.gloss dt{font-weight:700;color:var(--text)}
+.gloss dd{margin:0;color:var(--text-2)}
+@media (max-width:520px){.gloss{grid-template-columns:1fr;gap:2px}.gloss dd{margin-bottom:var(--s4)}}
+.chip{display:inline-flex;align-items:center;gap:var(--s2);font-size:var(--fs-sm);font-weight:600;padding:3px 10px;border-radius:999px;border:1px solid var(--line-2);background:var(--panel-2);color:var(--text);white-space:nowrap}
+.chip svg{width:12px;height:12px;flex:none}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:var(--s5)}
+.an{background:var(--panel);border:1px solid var(--line);border-radius:var(--rad-sm);padding:var(--s7);display:flex;flex-direction:column;gap:var(--s3);scroll-margin-top:var(--s7);transition:box-shadow var(--dur)}
+.an.flash{box-shadow:0 0 0 2px var(--accent)}
+.an .top{display:flex;justify-content:space-between;align-items:center;gap:var(--s3);flex-wrap:wrap}
+.an .id{font-size:var(--fs-sm);font-weight:700;color:var(--text-3);letter-spacing:.06em}
+.an h3{font-size:var(--fs-lg);line-height:1.35;margin:0}
+.an .big{font-size:24px;font-weight:700;color:var(--text);line-height:1.15}
+.an p{font-size:var(--fs-md);margin:0;color:var(--text-2)}
+.an .bigl{font-size:var(--fs-sm);color:var(--text-3)}
+.an ul{margin:var(--s3) 0;padding-left:18px}
+.an li{font-size:var(--fs-md)}
+.an details summary{cursor:pointer;color:var(--link);font-size:var(--fs-md)}
+.an .src{font-size:var(--fs-sm);color:var(--text-3)}
+.an .reg{font-size:var(--fs-sm)}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:var(--s3)}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:var(--rad-sm);padding:var(--s6)}
+.step .no{font-size:var(--fs-xs);color:var(--text-3);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.step .res{font-size:var(--fs-xl);font-weight:700;margin:var(--s2) 0}
+.step p{font-size:var(--fs-sm);margin:0}
+.status{display:inline-flex;align-items:center;gap:var(--s2);font-size:var(--fs-sm);font-weight:600;margin:0 0 var(--s3)}
+.status .dot{width:9px;height:9px;border-radius:50%}
+.seg{display:inline-flex;flex-wrap:wrap;gap:2px;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--rad-sm);padding:3px;margin:0 0 var(--s5)}
+.seg button{border:0;background:transparent;color:var(--text-2);padding:6px var(--s4);border-radius:var(--rad-xs);cursor:pointer;font-size:var(--fs-md)}
+.seg button:hover{background:var(--wash);color:var(--text)}
+.seg button[aria-pressed="true"]{background:var(--panel-3);color:var(--text);font-weight:600}
+#rank th{cursor:pointer;user-select:none}
+#rank th:hover{color:var(--text)}
+#rank th .ar{opacity:.4;font-size:9px;margin-left:3px}
+#rank th[aria-sort] .ar{opacity:1}
+#rank tbody tr{cursor:pointer}
+#rank tbody tr:hover td{background:var(--wash)}
+#rank td{font-size:var(--fs-md);padding:8px var(--s3)}
+#rank tfoot td{font-weight:700;color:var(--text)}
+.foot{margin-top:48px;padding-top:var(--s7);border-top:1px solid var(--line);font-size:var(--fs-sm);color:var(--text-3)}
+
+.note{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:var(--rad-xs);padding:var(--s5) var(--s6);font-size:var(--fs-md);color:var(--text-2);margin:0 0 var(--s5)}
+.note b{color:var(--text)}
+.scrollseg{display:flex;flex-wrap:nowrap;overflow-x:auto;max-width:100%;scrollbar-width:thin}
+.scrollseg button{flex:none}
+.sel{display:inline-flex;align-items:center;gap:var(--s4);margin:0 0 var(--s5)}
+.sel select{font:inherit;font-size:var(--fs-md);color:var(--text);background:var(--panel);border:1px solid var(--line-2);border-radius:var(--rad-xs);height:38px;padding:0 var(--s4);max-width:70vw}
+.smcards{display:flex;flex-direction:column;gap:var(--s5)}
+.smcard{scroll-margin-top:var(--s7);transition:box-shadow var(--dur)}
+.smcard.flash{box-shadow:0 0 0 2px var(--accent)}
+.smhead{display:flex;justify-content:space-between;align-items:center;gap:var(--s3);flex-wrap:wrap}
+.smhead h3{margin:0}
+.smcard .cap{font-size:var(--fs-sm);color:var(--text-3);margin:var(--s2) 0 var(--s3)}
+#smT th{cursor:pointer;user-select:none}
+#smT th .ar{opacity:.4;font-size:9px;margin-left:3px}
+#smT th[aria-sort] .ar{opacity:1}
+#smT tbody tr{cursor:pointer}
+#smT tbody tr:hover td{background:var(--wash)}
+#smT td{font-size:var(--fs-md);padding:8px var(--s3)}
+/* подсказка и приветствие */
+.tip{position:fixed;z-index:50;pointer-events:none;background:var(--panel);color:var(--text);border:1px solid var(--line-2);border-radius:var(--rad-xs);padding:var(--s3) var(--s4);font-size:var(--fs-sm);line-height:1.45;box-shadow:var(--shadow);max-width:260px;opacity:0;transition:opacity .1s}
+.tip .k{color:var(--text-3)}
+.tip b{font-weight:600}
+.dlg{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.6);display:grid;place-items:center;padding:var(--s7)}
+.dlg[hidden]{display:none}
+.dlg .in{background:var(--panel);border:1px solid var(--line-2);border-radius:var(--rad-sm);box-shadow:var(--shadow);max-width:520px;width:100%;max-height:100%;overflow:auto;padding:22px}
+.dlg h2{margin:0 0 var(--s5);font-size:var(--fs-xl)}
+.dlg ol{margin:0 0 var(--s7);padding-left:22px}
+.dlg li{margin:0 0 var(--s4);color:var(--text-2);font-size:15px;line-height:1.55}
+.dlg li b{color:var(--text)}
+.btns{display:flex;gap:var(--s3);flex-wrap:wrap}
+.btn{height:40px;padding:0 var(--s7);border-radius:var(--rad-xs);border:1px solid var(--line-2);background:var(--panel-2);color:var(--text);cursor:pointer;font-weight:600;transition:background var(--dur)}
+.btn:hover{background:var(--panel-3)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.pri:hover{filter:brightness(1.1)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="app">
+  <header class="bar">
+    <div class="brand"><span class="mark" aria-hidden="true">ДЭГ</span>2026 <small>открытые данные</small></div>
+    <nav class="nav" aria-label="Разделы">
+      <a href="#map">Карта</a>
+      <a href="#about">Что это</a>
+      <a href="#regions">Регионы</a>
+      <a href="#anomalies">Аномалии</a>
+      <a href="#paper">Результаты</a>
+      <a href="#verify">Проверка</a>
+    </nav>
+    <button class="iconbtn" id="help" type="button" aria-label="Как пользоваться картой" title="Как пользоваться"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7.6 7.6a2.5 2.5 0 114 2c-.9.6-1.6 1-1.6 2.1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="10" cy="14.6" r="1" fill="currentColor"/></svg></button>
+    <button class="iconbtn" id="theme" type="button" aria-label="Сменить тему" title="Светлая / тёмная тема"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 3a7 7 0 000 14z" fill="currentColor"/></svg></button>
+  </header>
+
+  <main>
+    <!-- КАРТА -->
+    <section class="view" id="v-map" aria-label="Карта">
+      <svg id="map" role="img" aria-label="Карта регионов, где проходило ДЭГ-2026. Регионы доступны с клавиатуры клавишей Tab."></svg>
+
+      <div class="float side" id="side">
+        <h1>Электронное голосование — 2026</h1>
+        <p class="sub">18–20 сентября · 32 региона · данные блокчейна ДЭГ</p>
+        <p class="label" id="mlabel">Раскрасить регионы по</p>
+        <div class="mlist" id="mlist" role="group" aria-labelledby="mlabel"></div>
+        <p class="label">Шкала</p>
+        <div class="legend" id="legend" style="margin-bottom:var(--s5)"></div>
+        <p class="mdesc" id="mdesc"></p>
+        <p class="hint"><span aria-hidden="true">👆</span><span>Нажмите на регион, чтобы открыть подробности. Кружки с цифрами — найденные странности. <button class="linkbtn" data-open-help type="button">Как читать карту?</button></span></p>
+        <p class="label" style="margin-top:var(--s6)">Итоги ДЭГ</p>
+        <div class="tot" id="tot" style="margin:0"></div>
+      </div>
+
+      <div class="mchips" id="mchips" role="group" aria-label="Показатель"></div>
+      <div class="float mlegend" id="mlegend"></div>
+
+      <div class="float presets" role="group" aria-label="Масштаб" id="presets">
+        <button type="button" data-p="all">Вся страна</button>
+        <button type="button" data-p="eu">Европа и Урал</button>
+      </div>
+      <div class="zoom">
+        <button type="button" id="zin" aria-label="Приблизить">+</button>
+        <button type="button" id="zout" aria-label="Отдалить">−</button>
+      </div>
+
+      <aside class="float sheet" id="sheet" data-state="hidden" aria-label="Профиль региона">
+        <button class="grab" id="grab" type="button" aria-label="Развернуть или свернуть"></button>
+        <div class="head"><h2 id="rname"></h2><button class="iconbtn" id="rclose" type="button" aria-label="Закрыть профиль"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>
+        <div class="body" id="rbody"></div>
+      </aside>
+    </section>
+
+    <!-- ЧТО ЭТО -->
+    <section class="view read" id="v-about" hidden>
+      <div class="page">
+        <h1>Что это за сайт</h1>
+        <p class="lede">В сентябре 2026 года жители 32 регионов могли проголосовать через интернет — это называется <b>дистанционное электронное голосование (ДЭГ)</b>. Каждое действие системы записывалось в открытый журнал — блокчейн. Мы скачали этот журнал целиком, пересчитали всё сами и сравнили с официальными протоколами.</p>
+        <div class="tiles" id="aboutTiles"></div>
+
+        <h2>Как устроено ДЭГ — за минуту</h2>
+        <p>Голосование проходит в четыре шага. Под каждым — что из этого попадает в открытый журнал.</p>
+        <div class="flow">
+          <div class="st"><h3>Запись</h3><p>Человек заранее подаёт заявление на Госуслугах и попадает в список ДЭГ своего участка.</p><div class="rec">В журнале: сколько людей в списке на каждом участке, кого добавили и исключили (без имён).</div></div>
+          <div class="st"><h3>Бюллетень</h3><p>В дни голосования человек открывает электронный бюллетень — система выдаёт его и отмечает, что бюллетень выдан.</p><div class="rec">В журнале: время выдачи и номер участка.</div></div>
+          <div class="st"><h3>Голос</h3><p>Человек отмечает выбор и отправляет. Голос уходит в зашифрованном виде — прочитать его по отдельности нельзя.</p><div class="rec">В журнале: зашифрованный голос и время. Кто как проголосовал — не видно.</div></div>
+          <div class="st"><h3>Подсчёт</h3><p>После закрытия голоса складываются, не расшифровываясь по одному, и расшифровывается только сумма.</p><div class="rec">В журнале: итог и данные, по которым его можно перепроверить.</div></div>
+        </div>
+        <p>Журнал копируется наблюдателям, поэтому любой, у кого есть время и навыки, может пересчитать результат сам. На деле этим почти никто не занимается: журнал весит около 50 ГБ, а нужные числа на официальных сайтах спрятаны. Этот сайт — попытка сделать такую проверку и показать её результат понятно.</p>
+
+        <h2>Что показывает карта</h2>
+        <p>Каждый регион закрашен по выбранному показателю: чем темнее (в светлой теме) или светлее (в тёмной), тем значение выше. Цвет — не оценка «хорошо или плохо», а просто величина.</p>
+        <div class="defs" id="defs"></div>
+
+        <h2>Как пользоваться</h2>
+        <ul>
+          <li><b>Выберите показатель</b> — слева на компьютере или кнопками над картой на телефоне.</li>
+          <li><b>Двигайте и приближайте карту</b> — мышью и колёсиком, на телефоне пальцем и щипком. Кнопка «Европа и Урал» сразу покажет плотную часть карты.</li>
+          <li><b>Нажмите на регион</b> — откроется профиль: главные числа, когда люди голосовали, как различаются участки и что было в 2024–2025 годах. На телефоне профиль выезжает снизу — потяните за полоску, чтобы развернуть.</li>
+          <li><b>Кружки с цифрами</b> — найденные странности. Нажмите, чтобы прочитать разбор.</li>
+          <li>Всё то же самое в виде таблицы — в разделе <a href="#regions">«Регионы»</a>.</li>
+        </ul>
+
+        <h2>Что значит «аномалия»</h2>
+        <p>Аномалия здесь — всё, что выбивается из ожидаемой картины. Это не обвинение: часть странностей объясняется техникой, одна оказалась ошибкой самих наблюдателей. У каждой карточки есть вердикт:</p>
+        <div class="chips" id="verdictKey"></div>
+        <ul id="verdictExplain"></ul>
+
+        <h2>Словарь</h2>
+        <dl class="gloss">
+          <dt>УИК</dt><dd>Участковая избирательная комиссия — самый мелкий «участок». В ДЭГ человек приписан к УИК по месту жительства, хотя голосует из дома.</dd>
+          <dt>ТИК, ОИК</dt><dd>Территориальная и окружная комиссии — следующие уровни. Протокол ОИК содержит итог округа, в том числе электронную часть.</dd>
+          <dt>Блокчейн</dt><dd>Журнал, записи в котором нельзя незаметно изменить задним числом: каждая запись связана с предыдущими. Копии хранятся у наблюдателей.</dd>
+          <dt>Голосование (контракт)</dt><dd>Отдельная «урна» в журнале. Одни выборы могут делиться на несколько урн — например, по территориям. Всего их было 5 103.</dd>
+          <dt>Явка ДЭГ</dt><dd>Доля записавшихся на электронное голосование, которые получили бюллетень. Она всегда высокая (около 90 %): записываются те, кто собирается голосовать.</dd>
+          <dt>п. п.</dt><dd>Процентные пункты — разница между двумя процентами: было 50 %, стало 40 % — это −10 п. п.</dd>
+          <dt>Квинтиль</dt><dd>Пятая часть регионов. Шкала на карте делит 32 региона на пять равных групп — от самых низких значений к самым высоким.</dd>
+        </dl>
+        <div class="btns" style="margin-top:28px"><a class="btn pri" href="#map" style="display:inline-flex;align-items:center;text-decoration:none">Открыть карту</a></div>
+        <p class="foot">Автор — Xandret. Рабочая версия: числа проверены, формулировки могут уточняться. Источники и ограничения — в разделе <a href="#verify">«Проверка»</a>.</p>
+      </div>
+    </section>
+
+    <!-- РЕГИОНЫ -->
+    <section class="view read" id="v-regions" hidden>
+      <div class="page" style="max-width:1100px">
+        <h1>Все регионы</h1>
+        <p>Та же информация, что на карте. Нажмите на заголовок, чтобы отсортировать, на строку — чтобы открыть регион на карте.</p>
+        <div class="box tscroll" style="padding:var(--s3)"><table id="rank"></table></div>
+      </div>
+    </section>
+
+    <!-- АНОМАЛИИ -->
+    <section class="view read" id="v-anomalies" hidden>
+      <div class="page" style="max-width:1100px">
+        <h1>Каталог аномалий</h1>
+        <p>Каждая карточка устроена одинаково: что заметили → что показывают данные → какие есть объяснения → вердикт. Нажмите «Подробнее», чтобы увидеть данные и альтернативные объяснения.</p>
+        <div class="chips" id="verdictKey2"></div>
+        <div class="cards" id="cards"></div>
+      </div>
+    </section>
+
+    <!-- ДЭГ И БУМАГА -->
+    <section class="view read" id="v-paper" hidden>
+      <div class="page" style="max-width:1100px">
+        <h1>Результаты: как голосовали через интернет</h1>
+        <p class="lede">Итоги ДЭГ по выборам в Госдуму для всех 32 регионов и всех 81 одномандатного округа, посчитанные прямо из журнала, — и сравнение с голосованием на участках там, где официальные протоколы уже сверены.</p>
+        <div class="note" id="resStatus"></div>
+        <div class="tiles" id="resTiles"></div>
+        <div class="box" id="resMain"></div>
+
+        <h2>Лидеры округов: участки против ДЭГ</h2>
+        <p>Для каждого округа с официальным протоколом — кандидат, победивший на участках: его доля на участках (оранжевая точка) и среди электронных голосов (синяя). Отсортировано по разнице.</p>
+        <div class="box"><div class="lk" id="ldKey"></div><div class="chart" id="ldChart" style="margin:0"></div></div>
+
+        <h2>Партии по регионам</h2>
+        <p>Выберите партию. Синяя точка — её доля среди электронных голосов региона, оранжевая — на участках (там, где есть протоколы всех округов региона). Пунктир — среднее по всем электронным голосам.</p>
+        <div class="seg scrollseg" role="group" aria-label="Партия" id="partySeg"></div>
+        <div class="box"><div class="lk" id="plKey"></div><div class="chart" id="plChart" style="margin:0"></div></div>
+
+        <h2>Одномандатные округа</h2>
+        <p>Выберите регион — ниже результаты каждого его округа. Метка у округа показывает, насколько точно электронные голоса собраны по округу: журнал делит округ на части по ТИК, и не все части подписаны.</p>
+        <div class="chips" id="mapKey"></div>
+        <label class="sel"><span class="label" style="margin:0">Регион</span><select id="regSel"></select></label>
+        <div id="smCards" class="smcards"></div>
+
+        <h2>Все округа одной таблицей</h2>
+        <p>Кто лидирует среди электронных голосов в каждом округе и с каким отрывом. Нажмите на заголовок, чтобы отсортировать, на строку — чтобы открыть округ.</p>
+        <div class="box tscroll" style="padding:var(--s3)"><table id="smT"></table></div>
+
+        <h2>Явка в сверенных округах</h2>
+        <p>Через интернет голосуют те, кто заранее записался, поэтому явка ДЭГ намного выше, чем на участках. Это главная причина, почему результаты различаются: голосуют разные люди. Явка — выданные бюллетени к списку; «доля ДЭГ» — доля электронных среди всех действительных бюллетеней округа.</p>
+        <div class="box tscroll"><table id="turnT"></table></div>
+        <p class="foot">Участки = протокол ОИК минус протокол ДЭГ (или сумма протоколов ТИК). Протоколы — из открытого снимка izbirkom.ru от 22.09 (github.com/Arhydemon/elections_20_09_26), проверенного нами: 384 строки совпали с протоколами, которые мы записали сами, а все 66 электронных протоколов — с журналом ДЭГ. Доли — от голосов за кандидатов (партии), разница — в процентных пунктах.</p>
+      </div>
+    </section>
+
+    <!-- ПРОВЕРКА -->
+    <section class="view read" id="v-verify" hidden>
+      <div class="page">
+        <h1>Как проверялись данные</h1>
+        <p>Четыре независимых слоя проверки. Первые три закончены, криптографическая проверка итогов идёт.</p>
+        <div class="steps" id="steps"></div>
+        <h2>Методика и ограничения</h2>
+        <p><b>Источник.</b> Полные копии семи цепочек блокчейна ДЭГ, выданные наблюдателям: 5 103 голосования, 12 202 035 выданных бюллетеней, 12 088 374 принятых голоса. Для 2024 и 2025 годов — такие же копии прошлых лет.</p>
+        <p><b>Люди, а не бюллетени.</b> Один человек получает сразу несколько бюллетеней (например, в Госдуму и губернатора). Записавшимся считается уникальный избиратель; явка — получившие бюллетень от списка за вычетом исключённых. Итог 90,876 % совпадает с официальными 90,87 %.</p>
+        <p><b>Участок.</b> Для сравнения лет на каждом УИК берётся одно «главное» голосование — с наибольшим числом бюллетеней. «УИК со 100 %» — список не меньше 50 человек, и бюллетень получили все, кто остался в списке.</p>
+        <p><b>Время.</b> В журнале время московское; местное получено сдвигом по часовому поясу региона. «Первый час» — 08:00–09:00 местного времени 18 сентября.</p>
+        <p><b>Чего здесь нет.</b> Данные не позволяют узнать, кто как проголосовал (так задумано), различить причины исключения из списка, проверить, кто держал телефон. Необычные закономерности — повод для вопросов, а не вывод о принуждении.</p>
+        <p><b>Приватность.</b> Обезличенные идентификаторы избирателей используются только внутри расчётов и не публикуются; наружу выходят суммы по регионам и участкам.</p>
+        <p><b>Карта.</b> Границы — Natural Earth (общественное достояние), упрощены; состав регионов — как в данных ДЭГ.</p>
+        <p class="foot">Источники: блокчейн ДЭГ-2026 (копии для наблюдателей); портал наблюдения stat.vybory.gov.ru; протоколы на izbirkom.ru; открытый набор данных и верификатор С. Слотина (feddeg); публикации В. Толстогузова (<a href="https://t.me/s/zanashepravo" target="_blank" rel="noopener">t.me/zanashepravo</a>). Код расчётов — репозиторий deg2026 (будет открыт). Автор — Xandret.</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="dlg" id="dlg" hidden role="dialog" aria-modal="true" aria-labelledby="dlgT">
+  <div class="in">
+    <h2 id="dlgT">Что это за карта</h2>
+    <ol>
+      <li>В сентябре 2026 года в 32 регионах можно было <b>проголосовать через интернет</b>. Каждое действие системы записывалось в открытый журнал.</li>
+      <li>Мы <b>скачали журнал целиком и пересчитали всё сами</b>: сколько людей записалось, сколько получили бюллетень, когда голосовали. Итоги сошлись с официальными протоколами.</li>
+      <li><b>Цвет региона</b> — выбранный показатель. <b>Нажмите на регион</b>, чтобы увидеть подробности. <b>Кружки с цифрами</b> — найденные странности с разбором.</li>
+    </ol>
+    <div class="btns"><button class="btn pri" type="button" id="dlgGo">Смотреть карту</button><a class="btn" href="#about" id="dlgMore" style="display:inline-flex;align-items:center;text-decoration:none">Подробнее о ДЭГ</a></div>
+  </div>
+</div>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script type="application/json" id="geo">__GEO__</script>
+<script type="application/json" id="data">__DATA__</script>
+<script type="application/json" id="resData">__RES__</script>
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const GEO=JSON.parse($('geo').textContent), D=JSON.parse($('data').textContent);
+const NS='http://www.w3.org/2000/svg';
+const nf=new Intl.NumberFormat('ru-RU');
+const num=x=>nf.format(Math.round(x));
+const pct=(x,d=1)=>(x==null||isNaN(x))?'—':x.toFixed(d).replace('.',',')+' %';
+const dec=(x,d=1)=>x.toFixed(d).replace('.',',');
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;};
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const store={get(k){try{return localStorage.getItem(k);}catch(e){return null;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
+const isMobile=()=>matchMedia('(max-width:760px)').matches;
+
+// ---------- тема ----------
+const root=document.documentElement;
+const savedTheme=store.get('deg-theme'); if(savedTheme)root.setAttribute('data-theme',savedTheme);
+$('theme').onclick=()=>{const cur=root.getAttribute('data-theme')==='light'?'dark':'light';root.setAttribute('data-theme',cur);store.set('deg-theme',cur);repaintAll();};
+
+// ---------- данные ----------
+const R={};D.regions.forEach(r=>{
+  r.turnout=100*r.ballots/r.list; r.fh=(r.dyn['2026']||{}).first_hour;
+  r.unp=100*(1-r.votes_all/r.ballots_all); r.u100=100*r.uik100/Math.max(1,r.uik50);
+  r.rem=100*r.removed/r.init; r.portal=100*(r.portal_ballots||0)/r.ballots_all; R[r.code]=r;});
+const regs=D.regions, sum=f=>regs.reduce((a,r)=>a+f(r),0);
+const NAT={turnout:100*sum(r=>r.ballots)/sum(r=>r.list),fh:sum(r=>r.fh*r.ballots)/sum(r=>r.ballots),
+  unp:100*(1-sum(r=>r.votes_all)/sum(r=>r.ballots_all)),u100:100*sum(r=>r.uik100)/sum(r=>r.uik50),
+  rem:100*sum(r=>r.removed)/sum(r=>r.init),portal:100*sum(r=>r.portal_ballots||0)/sum(r=>r.ballots_all)};
+const METRICS=[
+ {k:'turnout',t:'Явка ДЭГ',s:'Явка',d:1,what:'Сколько записавшихся на электронное голосование получили бюллетень.',norm:'обычно 88–94 %',why:'Высокая почти везде: записываются те, кто собирается голосовать. Интересны выбросы.'},
+ {k:'fh',t:'Первый час',s:'1-й час',d:1,what:'Какая доля бюллетеней выдана в первый час голосования — 18 сентября с 8 до 9 утра по местному времени.',norm:'по стране 22 %',why:'Очень высокая доля в первый час бывает, когда голосование организуют — например, на работе.'},
+ {k:'unp',t:'Без голоса',s:'Без голоса',d:2,what:'Доля бюллетеней, которые человек открыл, но голос так и не был принят.',norm:'по стране 0,93 %',why:'Обычно — человек передумал или закрыл страницу. Резкий рост указывает на технический сбой.'},
+ {k:'u100',t:'Участки со 100 %',s:'УИК 100 %',d:1,what:'Доля участков (от 50 человек в списке), где бюллетень получили абсолютно все записавшиеся.',norm:'по стране 0,4 %',why:'Если все до одного — это редкость. Скопление таких участков в одном регионе — повод присмотреться.',extra:r=>r.uik100+' из '+r.uik50+' участков'},
+ {k:'rem',t:'Исключены из списка',s:'Исключены',d:2,what:'Доля записавшихся, которых потом убрали из списка ДЭГ — чаще всего они пошли голосовать на участок бумагой.',norm:'по стране 0,95 %',why:'Новое в 2026 году. Всплески бывают после сбоев, когда людей отправляют на участки.'},
+ {k:'portal',t:'Видно на портале',s:'На портале',d:0,what:'Какую часть бюллетеней региона можно увидеть на официальном портале наблюдения.',norm:'по стране 47 %',why:'Показывает, насколько легко проверить регион без скачивания всего журнала.'}
+];
+let metric=METRICS[0], selected=null;
+
+function bins(k){const v=regs.map(r=>r[k]).sort((a,b)=>a-b);const q=p=>v[Math.min(v.length-1,Math.floor(p*v.length))];return[q(.2),q(.4),q(.6),q(.8)];}
+const RAMP=['--r1','--r2','--r3','--r4','--r5'];
+const colorFor=(val,b)=>{let i=0;while(i<b.length&&val>=b[i])i++;return css(RAMP[i]);};
+
+// ---------- подсказка ----------
+const tip=$('tip');
+function showTip(h,ev){tip.innerHTML=h;tip.style.opacity=1;moveTip(ev);}
+function moveTip(ev){const w=tip.offsetWidth,h=tip.offsetHeight;let x=ev.clientX+14,y=ev.clientY+14;if(x+w>innerWidth-8)x=ev.clientX-w-14;if(y+h>innerHeight-8)y=ev.clientY-h-14;tip.style.left=Math.max(8,x)+'px';tip.style.top=Math.max(8,y)+'px';}
+function hideTip(){tip.style.opacity=0;}
+
+// ---------- карта ----------
+const svg=$('map'), gR=el('g',{},svg), gM=el('g',{class:'mk'},svg);
+const paths={};
+GEO.regions.forEach(g=>{
+  const p=el('path',{d:g.d},gR); p.dataset.code=g.code||'';
+  if(g.code&&R[g.code]){
+    const r=R[g.code];r.cx=g.cx;r.cy=g.cy;paths[g.code]=p;
+    p.classList.add('deg');p.setAttribute('tabindex','0');p.setAttribute('role','button');p.setAttribute('aria-label',r.name);
+    p.addEventListener('pointermove',ev=>{if(ev.pointerType!=='mouse'||drag.active)return;showTip(`<b>${esc(r.name)}</b><br><span class="k">${metric.t}:</span> ${pct(r[metric.k],metric.d)}${metric.extra?' · '+metric.extra(r):''}<br><span class="k">По стране:</span> ${pct(NAT[metric.k],metric.d)}`,ev);});
+    p.addEventListener('pointerleave',hideTip);
+    p.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select(g.code,true);}});
+  } else {
+    p.style.fill='var(--nodeg)';
+    p.addEventListener('pointermove',ev=>{if(ev.pointerType!=='mouse'||drag.active)return;showTip(`<b>${esc(g.name||'')}</b><br><span class="k">ДЭГ не проводилось</span>`,ev);});
+    p.addEventListener('pointerleave',hideTip);
+  }
+});
+const MARK={31:['1','A-01'],49:['3','A-03'],66:['7','A-07'],21:['8','A-08'],10:['9','A-09']};
+Object.entries(MARK).forEach(([c,[lab,id]])=>{const r=R[c];
+  const g=el('g',{'data-x':r.cx,'data-y':r.cy,'data-an':id,tabindex:'0',role:'link','aria-label':'Аномалия '+id},gM);
+  el('circle',{r:10},g);el('text',{},g).textContent=lab;
+  g.addEventListener('pointermove',ev=>{if(ev.pointerType!=='mouse')return;showTip(`<b>${id}</b> · ${esc(CARDS.find(x=>x.id===id).title)}<br><span class="k">нажмите, чтобы прочитать разбор</span>`,ev);});
+  g.addEventListener('pointerleave',hideTip);
+  g.addEventListener('keydown',e=>{if(e.key==='Enter')location.hash='#anomalies/'+id;});
+});
+
+// видимая область (viewBox) + перемещение/масштаб
+let vb={x:0,y:0,w:1000,h:540};
+function cw(){return svg.clientWidth||1;} function ch(){return svg.clientHeight||1;}
+function applyVB(){svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);const k=vb.w/cw();
+  gM.querySelectorAll('g').forEach(g=>g.setAttribute('transform',`translate(${g.dataset.x},${g.dataset.y}) scale(${k})`));}
+function fit(b,pad){ // b: {x0,y0,x1,y1} в единицах карты; pad: отступы в px под плавающие панели
+  const W=cw(),H=ch(),aw=Math.max(80,W-pad.l-pad.r),ah=Math.max(80,H-pad.t-pad.b);
+  const bw=b.x1-b.x0,bh=b.y1-b.y0,k=Math.max(bw/aw,bh/ah);
+  vb.w=W*k;vb.h=H*k;vb.x=b.x0-pad.l*k-(aw*k-bw)/2;vb.y=b.y0-pad.t*k-(ah*k-bh)/2;applyVB();}
+function bboxOf(codes){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;codes.forEach(c=>{const bb=paths[c].getBBox();x0=Math.min(x0,bb.x);y0=Math.min(y0,bb.y);x1=Math.max(x1,bb.x+bb.width);y1=Math.max(y1,bb.y+bb.height);});return{x0,y0,x1,y1};}
+const EU=Object.keys(R).map(Number).filter(c=>![49,54,70,22,2].includes(c));
+function pads(){const m=isMobile();const sh=$('sheet').dataset.state;
+  return m?{l:12,r:56,t:96,b:(sh==='peek'?150:56)}:{l:330,r:(sh==='hidden'?70:430),t:24,b:64};}
+let preset='all';
+function goPreset(p){preset=p;[...$('presets').children].forEach(b=>b.setAttribute('aria-pressed',b.dataset.p===p));
+  fit(p==='eu'?bboxOf(EU):{x0:0,y0:0,x1:1000,y1:540},pads());}
+$('presets').querySelectorAll('button').forEach(b=>b.onclick=()=>goPreset(b.dataset.p));
+function zoomAt(f,px,py){const k=vb.w/cw();const mx=vb.x+px*k,my=vb.y+py*k;
+  const nw=Math.min(2400,Math.max(60,vb.w*f));f=nw/vb.w;vb.x=mx-(mx-vb.x)*f;vb.y=my-(my-vb.y)*f;vb.w=nw;vb.h*=f;applyVB();
+  [...$('presets').children].forEach(b=>b.setAttribute('aria-pressed','false'));}
+$('zin').onclick=()=>zoomAt(1/1.5,cw()/2,ch()/2); $('zout').onclick=()=>zoomAt(1.5,cw()/2,ch()/2);
+svg.addEventListener('wheel',e=>{e.preventDefault();const r=svg.getBoundingClientRect();zoomAt(Math.exp(e.deltaY*0.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});
+const drag={active:false,pts:new Map(),moved:0,start:null,pinch:null};
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);drag.pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(drag.pts.size===1){drag.moved=0;drag.start={x:e.clientX,y:e.clientY,t:Date.now(),target:e.target};}
+  if(drag.pts.size===2){const [a,b]=[...drag.pts.values()];drag.pinch={d:Math.hypot(a.x-b.x,a.y-b.y)};}});
+svg.addEventListener('pointermove',e=>{if(!drag.pts.has(e.pointerId))return;const prev=drag.pts.get(e.pointerId);const cur={x:e.clientX,y:e.clientY};
+  if(drag.pts.size===1){const dx=cur.x-prev.x,dy=cur.y-prev.y;drag.moved+=Math.abs(dx)+Math.abs(dy);
+    if(drag.moved>6){drag.active=true;svg.classList.add('drag');hideTip();const k=vb.w/cw();vb.x-=dx*k;vb.y-=dy*k;applyVB();}}
+  drag.pts.set(e.pointerId,cur);
+  if(drag.pts.size===2&&drag.pinch){const [a,b]=[...drag.pts.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);const r=svg.getBoundingClientRect();
+    zoomAt(drag.pinch.d/d,(a.x+b.x)/2-r.left,(a.y+b.y)/2-r.top);drag.pinch.d=d;drag.moved=99;drag.active=true;}});
+function endPtr(e){if(!drag.pts.has(e.pointerId))return;drag.pts.delete(e.pointerId);
+  if(drag.pts.size===0){svg.classList.remove('drag');
+    if(!drag.active&&drag.start){const t=document.elementFromPoint(e.clientX,e.clientY);const mk=t&&t.closest&&t.closest('[data-an]');
+      if(mk){location.hash='#anomalies/'+mk.dataset.an;}
+      else if(t&&t.dataset&&t.dataset.code&&R[t.dataset.code]){select(+t.dataset.code,true);}}
+    setTimeout(()=>{drag.active=false;},0);drag.pinch=null;}
+  if(drag.pts.size===1)drag.pinch=null;}
+svg.addEventListener('pointerup',endPtr);svg.addEventListener('pointercancel',endPtr);
+
+// ---------- показатель ----------
+function buildMetricUI(){
+  $('mlist').innerHTML='';$('mchips').innerHTML='';
+  METRICS.forEach(m=>{
+    const b=document.createElement('button');b.type='button';b.innerHTML=`<span>${m.t}</span><span class="nat">${pct(NAT[m.k],m.d)}</span>`;
+    b.setAttribute('aria-pressed',m===metric);b.onclick=()=>setMetric(m);$('mlist').appendChild(b);
+    const c=document.createElement('button');c.type='button';c.textContent=m.s;c.setAttribute('aria-pressed',m===metric);c.onclick=()=>setMetric(m);$('mchips').appendChild(c);
+  });}
+function setMetric(m){metric=m;[...$('mlist').children].forEach((b,i)=>b.setAttribute('aria-pressed',METRICS[i]===m));
+  [...$('mchips').children].forEach((b,i)=>b.setAttribute('aria-pressed',METRICS[i]===m));paint();if(selected)renderRegion(selected);}
+function paint(){
+  const b=bins(metric.k);regs.forEach(r=>{paths[r.code].style.fill=colorFor(r[metric.k],b);});
+  const lo=Math.min(...regs.map(r=>r[metric.k])),hi=Math.max(...regs.map(r=>r[metric.k]));const e=[lo,...b,hi];
+  $('legend').innerHTML=RAMP.map((v,i)=>`<div class="row"><span class="sw" style="background:var(${v})"></span>${dec(e[i],metric.d)} – ${dec(e[i+1],metric.d)}${metric.d?'':''} %</div>`).join('')+`<div class="row"><span class="sw" style="background:var(--nodeg)"></span>ДЭГ не было</div>`;
+  $('mdesc').innerHTML=`<b>${metric.t}.</b> ${metric.what} <br><span style="color:var(--text-3)">${metric.why}</span>`;
+  $('mlegend').innerHTML=`<span>${dec(lo,metric.d)}</span>`+RAMP.map(v=>`<span class="sw" style="background:var(${v})"></span>`).join('')+`<span>${dec(hi,metric.d)} %</span><button class="linkbtn q" data-open-help type="button">что это?</button>`;
+  $('mlegend').querySelector('[data-open-help]').onclick=openHelp;}
+$('tot').innerHTML=`<div><b>4 055 819</b><span>записались</span></div><div><b>90,9 %</b><span>получили бюллетень</span></div><div><b>5 103</b><span>голосования</span></div><div><b>0</b><span>расхождений с протоколами</span></div>`;
+
+// ---------- профиль региона ----------
+const sheet=$('sheet');
+function setSheet(s){sheet.dataset.state=s;}
+function select(code,fromMap){selected=code;
+  Object.values(paths).forEach(p=>p.classList.remove('on'));paths[code].classList.add('on');gR.appendChild(paths[code]);
+  renderRegion(code);setSheet(isMobile()?'peek':'open');$('rbody').scrollTop=0;
+  if(location.hash.slice(1)!=='map')history.replaceState(null,'','#map');}
+$('rclose').onclick=()=>{setSheet('hidden');selected=null;Object.values(paths).forEach(p=>p.classList.remove('on'));};
+$('grab').onclick=()=>setSheet(sheet.dataset.state==='full'?'peek':'full');
+(function(){let y0=null;$('grab').addEventListener('pointerdown',e=>{y0=e.clientY;});
+  $('grab').addEventListener('pointerup',e=>{if(y0==null)return;const dy=e.clientY-y0;y0=null;
+    if(dy<-30)setSheet('full');else if(dy>30)setSheet(sheet.dataset.state==='full'?'peek':'hidden');});})();
+$('rname').addEventListener('click',()=>{if(isMobile()&&sheet.dataset.state==='peek')setSheet('full');});
+
+const HOURS=72,X0=6,X1=70;
+function localSeries(r){const a=new Array(HOURS+10).fill(0);const tot=r.hourly.reduce((x,y)=>x+y,0);r.hourly.forEach((v,h)=>{const li=h+r.toff;if(li>=0&&li<a.length)a[li]+=100*v/tot;});return a;}
+const NAT_H=(()=>{const a=new Array(HOURS+10).fill(0);let tot=0;regs.forEach(r=>r.hourly.forEach((v,h)=>{const li=h+r.toff;if(li>=0&&li<a.length)a[li]+=v;tot+=v;}));return a.map(v=>100*v/tot);})();
+function lineChart(host,r){
+  const W=host.clientWidth||340,H=160,m={l:30,r:6,t:8,b:22};const s=localSeries(r),n=NAT_H;
+  const ymax=Math.ceil(Math.max(...s.slice(X0,X1+1),...n.slice(X0,X1+1))/2)*2||2;
+  const x=i=>m.l+(i-X0)/(X1-X0)*(W-m.l-m.r),y=v=>m.t+(1-v/ymax)*(H-m.t-m.b);
+  const sv=el('svg',{viewBox:`0 0 ${W} ${H}`,height:H,role:'img','aria-label':'Выдача бюллетеней по часам'});
+  for(let k=0;k<=2;k++){const v=ymax*k/2;el('line',{x1:m.l,x2:W-m.r,y1:y(v),y2:y(v),stroke:css(k?'--grid':'--axis')},sv);el('text',{x:m.l-5,y:y(v)+3.5,'text-anchor':'end'},sv).textContent=dec(v,0)+(k===2?'%':'');}
+  [8,20,32,44,56,68].forEach(i=>{el('text',{x:x(i),y:H-5,'text-anchor':'middle'},sv).textContent=['Пт','Сб','Вс'][Math.floor(i/24)]+' '+String(i%24).padStart(2,'0');el('line',{x1:x(i),x2:x(i),y1:H-m.b,y2:H-m.b+4,stroke:css('--axis')},sv);});
+  const pth=a=>{let d='';for(let i=X0;i<=X1;i++)d+=(i===X0?'M':'L')+x(i).toFixed(1)+','+y(a[i]).toFixed(1);return d;};
+  el('path',{d:pth(n),fill:'none',stroke:css('--text-3'),'stroke-width':1.5,'stroke-dasharray':'4 3'},sv);
+  el('path',{d:pth(s),fill:'none',stroke:css('--deg'),'stroke-width':2,'stroke-linejoin':'round'},sv);
+  const cr=el('line',{y1:m.t,y2:H-m.b,stroke:css('--axis'),visibility:'hidden'},sv),dot=el('circle',{r:4,fill:css('--deg'),stroke:css('--panel'),'stroke-width':2,visibility:'hidden'},sv);
+  const hit=el('rect',{x:m.l,y:0,width:W-m.l-m.r,height:H-m.b,fill:'transparent'},sv);
+  const mv=ev=>{const bb=sv.getBoundingClientRect();let i=Math.round(X0+((ev.clientX-bb.left)*W/bb.width-m.l)/(W-m.l-m.r)*(X1-X0));i=Math.max(X0,Math.min(X1,i));
+    cr.setAttribute('x1',x(i));cr.setAttribute('x2',x(i));cr.setAttribute('visibility','visible');dot.setAttribute('cx',x(i));dot.setAttribute('cy',y(s[i]));dot.setAttribute('visibility','visible');
+    const hh=String(i%24).padStart(2,'0');showTip(`<b>${['пт 18.09','сб 19.09','вс 20.09'][Math.floor(i/24)]}, ${hh}:00–${hh}:59</b><br><span class="k">${esc(r.name)}:</span> ${pct(s[i],2)}<br><span class="k">Все регионы:</span> ${pct(n[i],2)}`,ev);};
+  hit.addEventListener('pointermove',mv);hit.addEventListener('pointerdown',mv);
+  hit.addEventListener('pointerleave',()=>{cr.setAttribute('visibility','hidden');dot.setAttribute('visibility','hidden');hideTip();});
+  host.appendChild(sv);}
+function histChart(host,r){
+  const W=host.clientWidth||340,H=140,m={l:30,r:6,t:8,b:22};const h=r.hist||new Array(21).fill(0),tot=h.reduce((a,b)=>a+b,0)||1;
+  const first=Math.max(0,Math.min(12,h.findIndex(v=>v>0)));const idx=[];for(let i=first;i<21;i++)idx.push(i);
+  const ymax=Math.max(...h)||1,bw=(W-m.l-m.r)/idx.length,y=v=>m.t+(1-v/ymax)*(H-m.t-m.b);
+  const sv=el('svg',{viewBox:`0 0 ${W} ${H}`,height:H,role:'img','aria-label':'Участки по явке ДЭГ'});
+  el('line',{x1:m.l,x2:W-m.r,y1:H-m.b,y2:H-m.b,stroke:css('--axis')},sv);el('text',{x:m.l-5,y:y(ymax)+3.5,'text-anchor':'end'},sv).textContent=ymax;
+  idx.forEach((i,j)=>{const x=m.l+j*bw,v=h[i],top=y(v);
+    if(v>0){const rr=Math.min(4,bw/2-1,H-m.b-top);el('path',{d:`M${x+1},${H-m.b}V${top+rr}Q${x+1},${top} ${x+1+rr},${top}H${x+bw-1-rr}Q${x+bw-1},${top} ${x+bw-1},${top+rr}V${H-m.b}Z`,fill:css(i===20?'--r5':'--deg')},sv);}
+    const lab=i===20?'ровно 100 %':`${i*5}–${i*5+5} %`;const hit=el('rect',{x,y:m.t,width:bw,height:H-m.t-m.b,fill:'transparent'},sv);
+    const mv=ev=>showTip(`<b>Явка ${lab}</b><br>${v} участков · ${pct(100*v/tot)} от всех в регионе`,ev);hit.addEventListener('pointermove',mv);hit.addEventListener('pointerdown',mv);hit.addEventListener('pointerleave',hideTip);
+    if(i===20)el('text',{x:x+bw/2,y:H-5,'text-anchor':'middle'},sv).textContent='100';
+    else if(i%2===0){el('text',{x,y:H-5,'text-anchor':'middle'},sv).textContent=String(i*5);el('line',{x1:x,x2:x,y1:H-m.b,y2:H-m.b+4,stroke:css('--axis')},sv);}});
+  host.appendChild(sv);}
+const REG_AN={31:['A-01','A-09'],49:['A-03','A-04','A-09'],66:['A-07','A-08'],21:['A-08'],10:['A-09'],45:['A-08'],90:['A-04'],11:['A-05'],67:['A-05'],12:['A-08']};
+function renderRegion(code){
+  const r=R[code];$('rname').textContent=r.name;
+  const k=(key,v,l,c)=>`<div class="kpi${metric.k===key?' cur':''}"><div class="v">${v}</div><div class="l">${l}</div><div class="c">${c}</div></div>`;
+  const dy=r.dyn,yrs=['2024','2025','2026'].filter(y=>dy[y]);
+  const dynT=`<table><thead><tr><th>Год</th><th>Список</th><th>Явка</th><th>1-й час</th><th>УИК 100 %</th></tr></thead><tbody>`+yrs.map(y=>`<tr><td>${y}</td><td>${num(dy[y].list)}</td><td>${pct(dy[y].turnout)}</td><td>${pct(dy[y].first_hour)}</td><td>${dy[y].uik100}</td></tr>`).join('')+`</tbody></table>`;
+  const top=(r.top_uiks||[]).slice(0,6).map(u=>`<tr><td>№ ${u[0]}</td><td>${num(u[1])}</td><td>${num(u[2])}</td><td>${pct(100*u[2]/u[1])}</td></tr>`).join('');
+  const an=(REG_AN[code]||[]).map(id=>`<a href="#anomalies/${id}">${id}</a>`).join(', ');
+  $('rbody').innerHTML=`<p class="meta">${num(r.uiks)} участков · ${num(r.contracts)} голосований · время МСК${r.toff>0?'+'+r.toff:r.toff<0?'−'+(-r.toff):''}${an?'<br>Аномалии: '+an:''}</p>
+    <div class="kpis">
+      ${k('turnout',pct(r.turnout),'явка ДЭГ','по стране '+pct(NAT.turnout))}
+      ${k('fh',pct(r.fh),'в первый час','по стране '+pct(NAT.fh))}
+      ${k('unp',pct(r.unp,2),'бюллетеней без голоса','по стране '+pct(NAT.unp,2))}
+      ${k('u100',r.uik100+'<span style="font-size:13px;font-weight:600;color:var(--text-3)"> из '+r.uik50+'</span>','участков со 100 %','по стране 83 из 22 914')}
+      ${k('rem',pct(r.rem,2),'исключены из списка','в списке '+num(r.list))}
+      ${k('portal',pct(r.portal,0),'видно на портале','по стране '+pct(NAT.portal,0))}
+    </div>
+    <div class="chart"><h3>Когда голосовали</h3><p class="cap">Доля бюллетеней за каждый час, местное время. Пик утром в пятницу — обычная картина.</p>
+      <div class="lk"><span><i style="border-color:var(--deg)"></i>${esc(r.name)}</span><span><i class="dash" style="border-color:var(--text-3)"></i>все регионы</span></div><div id="lc"></div></div>
+    <div class="chart"><h3>Как различаются участки</h3><p class="cap">Сколько участков (от 50 человек) с той или иной явкой. Последний столбец — участки, где бюллетень получили все.</p><div id="hc"></div></div>
+    <div class="chart"><h3>2024 → 2026</h3><p class="cap">${yrs.length>1?'Тот же метод для всех лет. В прошлые годы ДЭГ часто проходило лишь в части региона.':'В прошлые годы федерального ДЭГ в регионе не было.'}</p><div class="tscroll">${dynT}</div></div>
+    <div class="chart"><h3>Участки с самой высокой явкой</h3><div class="tscroll"><table><thead><tr><th>УИК</th><th>Список</th><th>Бюллетени</th><th>Явка</th></tr></thead><tbody>${top}</tbody></table></div></div>`;
+  requestAnimationFrame(()=>{lineChart($('lc'),r);histChart($('hc'),r);});}
+
+// ---------- таблица регионов ----------
+const COLS=[{k:'name',t:'Регион',f:r=>esc(r.name)},{k:'list',t:'В списке',f:r=>num(r.list)},{k:'turnout',t:'Явка',f:r=>pct(r.turnout)},{k:'fh',t:'1-й час',f:r=>pct(r.fh)},
+  {k:'unp',t:'Без голоса',f:r=>pct(r.unp,2)},{k:'uik100',t:'УИК 100 %',f:r=>r.uik100},{k:'rem',t:'Исключены',f:r=>pct(r.rem,2)},{k:'portal',t:'На портале',f:r=>pct(r.portal,0)}];
+let sortK='list',sortD=-1;
+function renderRank(){const t=$('rank');const rows=[...regs].sort((a,b)=>sortK==='name'?sortD*a.name.localeCompare(b.name,'ru'):sortD*(a[sortK]-b[sortK]));
+  t.innerHTML=`<thead><tr>${COLS.map(c=>`<th scope="col" tabindex="0" data-k="${c.k}" ${c.k===sortK?`aria-sort="${sortD>0?'ascending':'descending'}"`:''}>${c.t}<span class="ar">${c.k===sortK?(sortD>0?'▲':'▼'):'▼'}</span></th>`).join('')}</tr></thead>`+
+  `<tbody>${rows.map(r=>`<tr data-code="${r.code}" tabindex="0">${COLS.map(c=>`<td>${c.f(r)}</td>`).join('')}</tr>`).join('')}</tbody>`+
+  `<tfoot><tr><td>Все регионы</td><td>${num(sum(r=>r.list))}</td><td>${pct(NAT.turnout)}</td><td>${pct(NAT.fh)}</td><td>${pct(NAT.unp,2)}</td><td>${sum(r=>r.uik100)}</td><td>${pct(NAT.rem,2)}</td><td>${pct(NAT.portal,0)}</td></tr></tfoot>`;
+  t.querySelectorAll('th').forEach(th=>{const go=()=>{const k=th.dataset.k;if(k===sortK)sortD=-sortD;else{sortK=k;sortD=k==='name'?1:-1;}renderRank();};th.onclick=go;th.onkeydown=e=>{if(e.key==='Enter')go();};});
+  t.querySelectorAll('tbody tr').forEach(tr=>{const go=()=>{location.hash='#map';setTimeout(()=>select(+tr.dataset.code),30);};tr.onclick=go;tr.onkeydown=e=>{if(e.key==='Enter')go();};});}
+
+// ---------- аномалии ----------
+const V={ok:{t:'Подтверждено',c:'--critical',i:'<path d="M2.5 6.5l2.3 2.3L9.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',x:'данные однозначно показывают, что это было.'},
+  tech:{t:'Объяснено технически',c:'--good',i:'<path d="M6 1.5v9M1.5 6h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',x:'явление есть, но у него обычная техническая причина.'},
+  art:{t:'Ошибка наблюдения',c:'--text-3',i:'<circle cx="6" cy="6" r="4.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 9L9 3" stroke="currentColor" stroke-width="1.6"/>',x:'«аномалию» создал инструмент наблюдателей, а не система.'},
+  nv:{t:'Причины не проверить',c:'--warn',i:'<path d="M4.3 4.4a1.8 1.8 0 113 1.4c-.7.5-1.3.8-1.3 1.7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="6" cy="10" r=".9" fill="currentColor"/>',x:'что произошло — видно, а почему — по открытым данным установить нельзя.'}};
+const chip=v=>`<span class="chip"><svg viewBox="0 0 12 12" style="color:var(${V[v].c})" aria-hidden="true">${V[v].i}</svg>${V[v].t}</span>`;
+$('verdictKey').innerHTML=$('verdictKey2').innerHTML=Object.keys(V).map(chip).join('');
+$('verdictExplain').innerHTML=Object.keys(V).map(v=>`<li><b>${V[v].t}</b> — ${V[v].x}</li>`).join('');
+const TG='https://t.me/zanashepravo/';
+const CARD_REG={'A-01':31,'A-03':49,'A-07':66,'A-08':21,'A-09':10};
+const CARDS=[
+ {id:'A-01',title:'Ровеньская ТИК: электронное голосование остановлено в 10:53 первого дня',v:['ok'],big:'613 из 1 878',bigl:'записавшихся успели получить бюллетень',
+  p:'Единственное из 5 103 голосований, закрытое раньше срока: одномандатный округ Госдумы № 80, Белгородская обл., 18.09 в 10:53:40 МСК. Бюллетени по всем выборам выдаются человеку одним действием, поэтому вместе с ним остановилась выдача и по партспискам, и на выборах губернатора.',
+  li:['1 263 записавшихся бюллетень не получили; 356 позже исключены из списка ДЭГ (перешли на бумагу).','Итог 613 выданных / 605 принятых вошёл в протокол ОИК № 80 без изменений — совпадает с цепочкой.','Председатель ТИК ДЭГ О. Артамонов назвал причиной «техническую ошибку».'],
+  alt:'Плановое закрытие исключено: других ранних finishVoting нет. Причина ошибки по открытым данным не проверяема.',src:[['t.me/zanashepravo/55',TG+'55'],['/58',TG+'58']]},
+ {id:'A-02',title:'Госдума в зоне МСК: приём голосов закрыт в 20:00, а не в 20:15',v:['ok'],big:'441 голос',bigl:'принят после 20:00:43 в региональных голосованиях зоны МСК',
+  p:'1 213 голосований по выборам в Госдуму в 20 регионах московского времени закрыты транзакциями в 20:00:43–20:01:07. В других часовых поясах и в региональных выборах той же зоны — в 20:15 местного, как объявлялось.',
+  li:['Эти 441 человек успевали по регламенту, но их бюллетень в Госдуму принят уже не мог быть.','Выдано бюллетеней ГД в зоне МСК в 19:45–20:00 — 5 260 (верхняя граница затронутых).'],
+  alt:'Разный регламент для федеральных выборов не объявлялся: на портале у всех голосований конец приёма — 20:15. Масштаб — оценка.',src:[['t.me/zanashepravo/70–73',TG+'70']]},
+ {id:'A-03',title:'Магаданская область: первые три часа голоса почти не принимались',v:['ok','nv'],big:'0,05 против 0,97',bigl:'голосов на бюллетень в первые 3 часа — Магадан против остальных',
+  p:'18.09 с 00:00 до 03:00 МСК (08:00–11:00 местного) выдано 5 382 бюллетеня, а принято 279 голосов. С 03:00 приём восстановился и частично догнал очередь.',
+  li:['Итог: 3,44 % бюллетеней без голоса — худший показатель в стране (медиана около 0,8 %).','Официальный протокол ОИК совпадает с цепочкой во всех 17 строках; 272 неотправленных бюллетеня видны как разница строк 4 и 8.'],
+  alt:'Магадан открывался первым, других регионов в эти часы не было — вероятен сбой приёма на старте. Подтвердить причину по открытым данным нельзя.',src:[]},
+ {id:'A-04',title:'Бюллетени без голоса: 0,93 % по стране',v:['tech'],big:'113 661',bigl:'из 12 202 035 выданных бюллетеней',
+  p:'Выдача бюллетеня и приём голоса — две разные записи в журнале. Разница — бюллетени, которые человек получил, но не отправил. Ни в одном голосовании голосов не больше, чем бюллетеней.',
+  li:['2024 — 0,70 %, 2025 — 0,71 %, 2026 — 0,93 %.','Выбросы: Магаданская 3,44 %, Пермский край 1,47 %, Нижегородская 1,19 %; меньше всего — Смоленская 0,49 %.'],
+  alt:'Основное объяснение — незавершённое голосование (закрыл вкладку, не пришёл код). Региональные выбросы — сбои приёма (см. A-03).',src:[]},
+ {id:'A-05',title:'Исключения из списков ДЭГ: новое в 2026 году',v:['ok','nv'],big:'38 461',bigl:'человек исключены из списка (0,95 % записавшихся)',
+  p:'Впервые записавшийся на ДЭГ мог проголосовать на участке бумагой; исключают также проголосовавших досрочно. В цепочке это одна операция — причины не различить.',
+  li:['Больше всего: Коми 2,89 %, Смоленская 2,73 %, Марий Эл 1,98 %, Новосибирская 1,93 %.','Явка от списка с исключениями — 90,88 % (официально 90,87 %), от первоначального — 90,01 %.','Локальный всплеск — Ровеньская ТИК после остановки ДЭГ (A-01).'],
+  alt:'Исключение меняет знаменатель явки; в официальной цифре исключённые не учитываются.',src:[]},
+ {id:'A-06',title:'Больше половины бюллетеней не видно на портале наблюдения',v:['ok'],big:'53 %',bigl:'бюллетеней — в 1 926 голосованиях, которых нет на портале',
+  p:'Портал показывает 3 177 из 5 103 голосований. Выборы в Госдуму разбиты на голосования по ТИК, а портал показывает на округ одно. На izbirkom.ru ДЭГ отдельно не выделен: его можно получить только как «протокол ОИК минус сумма протоколов ТИК».',
+  li:['Проверка ДЭГ-части итога требует выгрузить весь блокчейн (~50 ГБ) и вручную собрать протоколы с сайта, где числа обфусцированы.','Выборочная проверка это сделала — итог совпал (см. «Как проверялись данные»).'],
+  alt:'Это не нарушение, а предел наблюдаемости: высокий порог входа для общественного контроля.',src:[]},
+ {id:'A-07',title:'Свердловская область: «обрыв данных по участкам» оказался артефактом',v:['art'],big:'2,1 %',bigl:'«застывших» УИК в регионе — меньше среднего по стране (2,8 %)',
+  p:'Во время голосования на графиках наблюдателей у многих свердловских УИК линии выдачи застыли на 19 сентября. Реконструкция показала: ломалась программа, скачивавшая журнал: она перестала дописывать новые записи.',
+  li:['В полных данных у всех 175 проверенных УИК выдача шла и 20 сентября.','Официальный ответ касался электронных списков избирателей, а не ДЭГ — это другая система.'],
+  alt:'Реальный сбой ДЭГ в регионе опровергается полными данными. Пример того, как ограничения инструмента выглядят как аномалия.',src:[]},
+ {id:'A-08',title:'Первый час, участки со 100 %, ночное голосование',v:['ok','nv'],big:'7 → 21 → 37',bigl:'УИК со 100 % явкой ДЭГ в Чувашии в 2024, 2025 и 2026 гг.',
+  p:'22 % проголосовавших получили бюллетень в первый час (Курганская — 32,5 %, Марий Эл — 30,1 %). 83 участка из 22 914 со 100 % явкой ДЭГ, 37 из них — в Чувашии (4,8 % её УИК). Явки выше 100 % нет нигде.',
+  li:['УИК, где больше половины проголосовали в первый час: 24 (Курганская — 8).','Ночью (до 08:00 и после 20:00 местного) — 6,4 %: ДЭГ круглосуточный, это не нарушение.'],
+  alt:'Такие паттерны типичны для организованного голосования, но и для небольших сплочённых списков. Причину по открытым данным установить нельзя.',src:[]},
+ {id:'A-09',title:'ДЭГ и бумага: лидеры округов получают в ДЭГ меньше',v:['ok','nv'],big:'−12 … −24 п. п.',bigl:'у лидеров трёх одномандатных округов в ДЭГ по сравнению с бумагой',
+  p:'В пяти сверенных округах явка ДЭГ около 89–91 % против 36–61 % на бумаге. Лидеры одномандатных округов теряют в ДЭГ, а в партсписке Карелии ЕР, напротив, получает на 4,6 п. п. больше, КПРФ — на 7,1 меньше.',
+  li:['Подробно — в разделе <a href="#paper">«Результаты»</a>.'],
+  alt:'Состав избирателей ДЭГ другой (запись через Госуслуги). Различие подтверждено, причины по этим данным не проверяемы.',src:[]}
+];
+$('cards').innerHTML=CARDS.map(c=>`<article class="an" id="${c.id}">
+  <div class="top"><span class="id">${c.id}</span><span style="display:flex;gap:6px;flex-wrap:wrap">${c.v.map(chip).join('')}</span></div>
+  <h3>${c.title}</h3><div><div class="big">${c.big}</div><div class="bigl">${c.bigl}</div></div><p>${c.p}</p>
+  <details><summary>Подробнее: данные и объяснения</summary><ul>${c.li.map(x=>`<li>${x}</li>`).join('')}</ul><p><b>Другие объяснения.</b> ${c.alt}</p></details>
+  ${CARD_REG[c.id]?`<div class="reg"><a href="#map" data-sel="${CARD_REG[c.id]}">Показать регион на карте →</a></div>`:''}
+  ${c.src.length?`<div class="src">Первым заметил: ${c.src.map(s=>`<a href="${s[1]}" target="_blank" rel="noopener">${s[0]}</a>`).join(', ')}</div>`:''}</article>`).join('');
+$('cards').querySelectorAll('[data-sel]').forEach(a=>a.addEventListener('click',()=>setTimeout(()=>select(+a.dataset.sel),30)));
+
+// ---------- что это: плитки и показатели ----------
+$('aboutTiles').innerHTML=[['4 055 819','записались на ДЭГ','из них 38 461 позже исключены'],['3 650 803','получили бюллетень','явка 90,88 % (официально 90,87 %)'],
+  ['12,2 млн','электронных бюллетеней','у одного человека их бывает несколько'],['0','расхождений с протоколами','проверено 5 протоколов, 91 строка']]
+  .map(t=>`<div class="tile"><div class="v">${t[0]}</div><div class="l">${t[1]}</div><div class="n">${t[2]}</div></div>`).join('');
+$('defs').innerHTML=METRICS.map(m=>`<div class="def"><h3>${m.t}<span>${m.norm}</span></h3><p>${m.what}</p><p class="why">${m.why}</p></div>`).join('');
+
+// ---------- результаты ----------
+const RS=JSON.parse($('resData').textContent);
+const shortName=s=>{const p=s.trim().split(/\s+/);if(p.length<2)return s;const f=p[0].charAt(0)+p[0].slice(1).toLowerCase();return f+' '+p.slice(1).map(x=>x.charAt(0)+'.').join(' ');};
+const SHORTREG={'Чувашская Республика - Чувашия':'Чувашия','Ненецкий автономный округ':'Ненецкий АО','Удмуртская Республика':'Удмуртия'};
+const shortReg=s=>SHORTREG[s]||s.replace(' область',' обл.').replace('Республика ','Респ. ');
+const plNatTot=RS.plNat.reduce((a,b)=>a+b,0);
+const nPaperReg=RS.pl.filter(r=>r.paper).length, nPaperSM=RS.sm.filter(d=>d.cands.some(c=>c.paper!=null)).length;
+$('resStatus').innerHTML=`<b>Сравнение с участками:</b> официальные протоколы есть для ${nPaperSM} из 81 округа и для ${nPaperReg} из 32 регионов по партиям (по региону — только когда есть все его округа). Остальные протоколы собираются. Электронная часть посчитана полностью.`;
+const top=RS.parties.map((p,i)=>[p,100*RS.plNat[i]/plNatTot]).sort((a,b)=>b[1]-a[1]);
+$('resTiles').innerHTML=[[num(plNatTot),'электронных голосов по партиям','32 региона, 1 044 части по ТИК'],
+  ...top.slice(0,4).map(([p,v])=>[pct(v),p+' в ДЭГ','доля среди всех электронных голосов']),
+  [String(RS.sm.length),'одномандатных округов','в каждом ДЭГ посчитано целиком']]
+  .map(t=>`<div class="tile"><div class="v">${t[0]}</div><div class="l">${esc(t[1])}</div><div class="n">${t[2]}</div></div>`).join('');
+let party=0;
+RS.parties.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.textContent=p;b.setAttribute('aria-pressed',i===0);
+  b.onclick=()=>{party=i;[...$('partySeg').children].forEach(x=>x.setAttribute('aria-pressed',x===b));plChart();};$('partySeg').appendChild(b);});
+$('plKey').innerHTML=`<span><i class="dot" style="background:var(--deg)"></i>ДЭГ</span><span><i class="dot" style="background:var(--paper)"></i>на участках</span><span><i class="dash" style="border-color:var(--text-3)"></i>ДЭГ, все регионы</span>`;
+function dotRow(sv,{y,x,deg,paper,label,labelW,W,right,tipHtml,rh}){
+  el('text',{x:labelW-8,y:y+4,'text-anchor':'end',style:'fill:var(--text);font-size:12px'},sv).textContent=label;
+  if(paper!=null)el('line',{x1:x(paper),x2:x(deg),y1:y,y2:y,stroke:css('--axis'),'stroke-width':2},sv);
+  if(paper!=null)el('circle',{cx:x(paper),cy:y,r:5.5,fill:css('--paper'),stroke:css('--panel'),'stroke-width':2},sv);
+  el('circle',{cx:x(deg),cy:y,r:5.5,fill:css('--deg'),stroke:css('--panel'),'stroke-width':2},sv);
+  el('text',{x:W-2,y:y+4,'text-anchor':'end',style:'font-weight:600;fill:var(--text-2);font-size:12px'},sv).textContent=right;
+  const hit=el('rect',{x:0,y:y-rh/2,width:W,height:rh,fill:'transparent'},sv);const mv=ev=>showTip(tipHtml,ev);
+  hit.addEventListener('pointermove',mv);hit.addEventListener('pointerdown',mv);hit.addEventListener('pointerleave',hideTip);}
+function axisX(sv,x,xmax,y0,y1,step,lo=0){for(let v=lo;v<=xmax+1e-9;v+=step){el('line',{x1:x(v),x2:x(v),y1:y0,y2:y1,stroke:css(v?'--grid':'--axis')},sv);el('text',{x:x(v),y:y1+14,'text-anchor':'middle'},sv).textContent=v;}}
+function plChart(){const host=$('plChart');if(!host.offsetParent)return;host.innerHTML='';
+  const rows=RS.pl.map(r=>({name:r.region,deg:100*r.deg[party]/r.valid,paper:r.paper?r.paper[party]:null,n:r.deg[party],valid:r.valid})).sort((a,b)=>b.deg-a.deg);
+  const nat=100*RS.plNat[party]/plNatTot;
+  const W=host.clientWidth||600,lw=Math.min(220,W*.36),rh=24,m={t:6,b:24,r:56},H=m.t+rows.length*rh+m.b;
+  const mx=Math.max(...rows.map(r=>Math.max(r.deg,r.paper||0))),mn=Math.min(...rows.map(r=>r.paper!=null?Math.min(r.deg,r.paper):r.deg));const step=mx-mn>30?10:mx-mn>8?5:1;const xmax=Math.ceil((mx+.5)/step)*step,lo=Math.max(0,Math.floor((mn-.5)/step)*step);
+  const x=v=>lw+(v-lo)/(xmax-lo)*(W-lw-m.r);const sv=el('svg',{viewBox:`0 0 ${W} ${H}`,height:H,role:'img','aria-label':'Доля партии по регионам'});
+  axisX(sv,x,xmax,m.t,H-m.b,step,lo);
+  el('line',{x1:x(nat),x2:x(nat),y1:m.t,y2:H-m.b,stroke:css('--text-3'),'stroke-dasharray':'4 3'},sv);
+  rows.forEach((r,i)=>dotRow(sv,{y:m.t+i*rh+rh/2,x,deg:r.deg,paper:r.paper,label:W<560?shortReg(r.name):r.name,labelW:lw,W,rh,
+    right:r.paper!=null?((r.deg-r.paper>0?'+':'−')+dec(Math.abs(r.deg-r.paper))):dec(r.deg),
+    tipHtml:`<b>${esc(r.name)}</b> · ${esc(RS.parties[party])}<br><span class="k">ДЭГ:</span> ${pct(r.deg,2)} (${num(r.n)} из ${num(r.valid)})`+(r.paper!=null?`<br><span class="k">На участках:</span> ${pct(r.paper,2)}<br><span class="k">Разница:</span> ${(r.deg-r.paper>0?'+':'')+dec(r.deg-r.paper,2)} п. п.`:'<br><span class="k">Участки — после сверки протокола</span>')}));
+  host.appendChild(sv);}
+// округа
+const MAPK={verified:['Есть протокол','--good','Электронная часть совпала с официальным протоколом; есть данные участков.'],exact:['Собрано точно','--accent','Все части округа однозначно определены по журналу.'],recon:['Реконструкция','--warn','Часть частей округа отнесена к нему по сходству результатов; ждёт сверки с протоколом.']};
+const mk=k=>`<span class="chip"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(${MAPK[k][1]})"></span>${MAPK[k][0]}</span>`;
+$('mapKey').innerHTML=Object.keys(MAPK).map(mk).join('');
+const regsSM=[...new Set(RS.sm.map(d=>d.region))].sort((a,b)=>a.localeCompare(b,'ru'));
+$('regSel').innerHTML=regsSM.map(r=>`<option>${esc(r)}</option>`).join('');
+$('regSel').value='Белгородская область';
+$('regSel').onchange=smCards;
+function smCards(){const host=$('smCards');if(!host.offsetParent)return;const reg=$('regSel').value;
+  host.innerHTML='';RS.sm.filter(d=>d.region===reg).forEach(d=>{
+    const card=document.createElement('div');card.className='box smcard';card.id='sm-'+d.id;
+    const tot=d.cands.reduce((a,c)=>a+c.deg,0);const rows=d.cands.map(c=>({...c,dp:100*c.deg/tot})).sort((a,b)=>b.dp-a.dp);
+    card.innerHTML=`<div class="smhead"><h3>${esc(d.district)}</h3>${mk(d.mapping)}</div><p class="cap">${num(tot)} электронных голосов · ${d.contracts} частей по ТИК · ${rows.length} кандидатов</p>`;
+    const W=host.clientWidth-34||560,lw=Math.min(170,W*.4),rh=26,m={t:4,b:24,r:52},H=m.t+rows.length*rh+m.b;
+    const mx=Math.max(...rows.map(r=>Math.max(r.dp,r.paper||0)));const step=mx>40?20:10;const xmax=Math.ceil(mx/step)*step;const x=v=>lw+v/xmax*(W-lw-m.r);
+    const sv=el('svg',{viewBox:`0 0 ${W} ${H}`,height:H,role:'img','aria-label':'Результаты кандидатов'});axisX(sv,x,xmax,m.t,H-m.b,step);
+    rows.forEach((r,i)=>dotRow(sv,{y:m.t+i*rh+rh/2,x,deg:r.dp,paper:r.paper,label:shortName(r.name),labelW:lw,W,rh,
+      right:r.paper!=null?((r.dp-r.paper>0?'+':'−')+dec(Math.abs(r.dp-r.paper))):dec(r.dp),
+      tipHtml:`<b>${esc(r.name)}</b><br><span class="k">ДЭГ:</span> ${pct(r.dp,2)} (${num(r.deg)})`+(r.paper!=null?`<br><span class="k">На участках:</span> ${pct(r.paper,2)}<br><span class="k">Разница:</span> ${(r.dp-r.paper>0?'+':'')+dec(r.dp-r.paper,2)} п. п.`:'')}));
+    const ch=document.createElement('div');ch.className='chart';ch.style.margin='0';ch.appendChild(sv);card.appendChild(ch);host.appendChild(card);});}
+// таблица всех округов
+const SMROWS=RS.sm.map(d=>{const tot=d.cands.reduce((a,c)=>a+c.deg,0);const s=[...d.cands].sort((a,b)=>b.deg-a.deg);
+  return{d,region:d.region,district:d.district,leader:shortName(s[0].name),ls:100*s[0].deg/tot,second:s[1]?shortName(s[1].name):'—',margin:s[1]?100*(s[0].deg-s[1].deg)/tot:100,tot,mapping:d.mapping};});
+const SMCOLS=[{k:'region',t:'Регион',f:r=>esc(shortReg(r.region))},{k:'district',t:'Округ',f:r=>esc(r.district)},{k:'leader',t:'Лидер в ДЭГ',f:r=>esc(r.leader)},{k:'ls',t:'Доля',f:r=>pct(r.ls)},
+  {k:'margin',t:'Отрыв от 2-го',f:r=>dec(r.margin)+' п. п.'},{k:'tot',t:'Голосов',f:r=>num(r.tot)},{k:'mapping',t:'Сборка',f:r=>`<span class="dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(${MAPK[r.mapping][1]})" title="${MAPK[r.mapping][0]}"></span> ${MAPK[r.mapping][0]}`}];
+let smK='ls',smD=-1;
+function smTable(){const t=$('smT');const rows=[...SMROWS].sort((a,b)=>typeof a[smK]==='string'?smD*a[smK].localeCompare(b[smK],'ru'):smD*(a[smK]-b[smK]));
+  t.innerHTML=`<thead><tr>${SMCOLS.map(c=>`<th style="text-align:${['region','district','leader','mapping'].includes(c.k)?'left':'right'}" scope="col" tabindex="0" data-k="${c.k}" ${c.k===smK?`aria-sort="${smD>0?'ascending':'descending'}"`:''}>${c.t}<span class="ar">${c.k===smK?(smD>0?'▲':'▼'):'▼'}</span></th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr tabindex="0" data-id="${r.d.id}">${SMCOLS.map(c=>`<td${['region','district','leader','mapping'].includes(c.k)?' style="text-align:left"':''}>${c.f(r)}</td>`).join('')}</tr>`).join('')}</tbody>`;
+  t.querySelectorAll('th').forEach(th=>{const go=()=>{const k=th.dataset.k;if(k===smK)smD=-smD;else{smK=k;smD=(k==='region'||k==='district'||k==='leader'||k==='mapping')?1:-1;}smTable();};th.onclick=go;th.onkeydown=e=>{if(e.key==='Enter')go();};});
+  t.querySelectorAll('tbody tr').forEach(tr=>{const go=()=>{const d=RS.sm.find(x=>x.id==tr.dataset.id);$('regSel').value=d.region;smCards();const n=$('sm-'+d.id);if(n){n.scrollIntoView({behavior:'smooth',block:'center'});n.classList.add('flash');setTimeout(()=>n.classList.remove('flash'),1600);}};tr.onclick=go;tr.onkeydown=e=>{if(e.key==='Enter')go();};});}
+$('turnT').innerHTML=`<thead><tr><th>Округ</th><th>Явка на участках</th><th>Явка ДЭГ</th><th>Доля ДЭГ в голосах</th></tr></thead><tbody>`+RS.turnout.map(d=>`<tr><td>${esc(d.label)}</td><td>${pct(d.paper)}</td><td>${pct(d.deg)}</td><td>${pct(d.share)}</td></tr>`).join('')+'</tbody>';
+// главное: считается из данных, обновляется само
+const sgn=v=>(v>0?'+':v<0?'−':'')+dec(Math.abs(v));
+const med=a=>{const s=[...a].sort((x,y)=>x-y);const n=s.length;return n?(n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2):NaN;};
+const LEAD=RS.sm.filter(d=>d.cands.some(c=>c.paper!=null)).map(d=>{const tot=d.cands.reduce((a,c)=>a+c.deg,0);const w=[...d.cands].sort((a,b)=>b.paper-a.paper)[0];
+  const dw=[...d.cands].sort((a,b)=>b.deg-a.deg)[0];return{d,name:w.name,paper:w.paper,deg:100*w.deg/tot,diff:100*w.deg/tot-w.paper,same:dw===w};});
+(function(){const t=RS.turnout,L=LEAD,down=L.filter(x=>x.diff<0).length;
+  const er=RS.pl.filter(r=>r.paper).map(r=>100*r.deg[0]/r.valid-r.paper[0]);
+  const items=[
+   `<b>Явка.</b> В ${t.length} округах с протоколами медианная явка на участках — ${pct(med(t.map(x=>x.paper)))}, среди записавшихся на ДЭГ — ${pct(med(t.map(x=>x.deg)))}. Электронные голоса — в среднем ${pct(med(t.map(x=>x.share)))} всех голосов округа.`,
+   `<b>Лидеры округов.</b> Победитель на участках получил в ДЭГ меньше в ${down} из ${L.length} округов; медианная разница ${(med(L.map(x=>x.diff))>0?'+':'−')+dec(Math.abs(med(L.map(x=>x.diff))))} п. п. ${(n=>n?`В ${n} округах среди электронных голосов лидирует другой кандидат.`:'Но во всех этих округах он остаётся первым и среди электронных голосов.')(L.filter(x=>!x.same).length)}`,
+   er.length?`<b>Единая Россия.</b> В ${er.length} регионах, где есть протоколы всех округов, разница «ДЭГ минус участки» — от ${sgn(Math.min(...er))} до ${sgn(Math.max(...er))} п. п.: направление зависит от региона.`:''];
+  $('resMain').innerHTML='<p class="label">Главное по сверенным округам</p><ul style="margin:0;padding-left:20px">'+items.filter(Boolean).map(x=>`<li style="margin:0 0 8px">${x}</li>`).join('')+'</ul><p style="margin:8px 0 0;font-size:13px;color:var(--text-3)">Голосуют разные люди: на ДЭГ записываются заранее через Госуслуги. Разница — факт, а не доказательство нарушения.</p>';})();
+$('ldKey').innerHTML=`<span><i class="dot" style="background:var(--paper)"></i>на участках</span><span><i class="dot" style="background:var(--deg)"></i>ДЭГ</span>`;
+function ldChart(){const host=$('ldChart');if(!host.offsetParent)return;host.innerHTML='';
+  const rows=[...LEAD].sort((a,b)=>a.diff-b.diff);const W=host.clientWidth||600,narrow=W<560,lw=Math.min(narrow?150:290,W*.42),rh=24,m={t:6,b:24,r:52},H=m.t+rows.length*rh+m.b;
+  const mx=Math.max(...rows.map(r=>Math.max(r.deg,r.paper))),mn=Math.min(...rows.map(r=>Math.min(r.deg,r.paper)));const step=10,lo=Math.max(0,Math.floor((mn-1)/step)*step),xmax=Math.ceil((mx+1)/step)*step;
+  const x=v=>lw+(v-lo)/(xmax-lo)*(W-lw-m.r);const sv=el('svg',{viewBox:`0 0 ${W} ${H}`,height:H,role:'img','aria-label':'Лидеры округов'});axisX(sv,x,xmax,m.t,H-m.b,step,lo);
+  rows.forEach((r,i)=>dotRow(sv,{y:m.t+i*rh+rh/2,x,deg:r.deg,paper:r.paper,label:narrow?r.d.district:`${r.d.district} · ${shortName(r.name)}`,labelW:lw,W,rh,
+    right:(r.diff>0?'+':'−')+dec(Math.abs(r.diff)),tipHtml:`<b>${esc(r.d.region)}, ${esc(r.d.district)}</b><br>${esc(r.name)}<br><span class="k">На участках:</span> ${pct(r.paper,2)}<br><span class="k">ДЭГ:</span> ${pct(r.deg,2)}<br><span class="k">Разница:</span> ${(r.diff>0?'+':'')+dec(r.diff,2)} п. п.`}));
+  host.appendChild(sv);}
+function dumbbell(){plChart();smCards();ldChart();}
+smTable();
+
+// ---------- проверка ----------
+const ST={done:['Готово','--good'],run:['Идёт','--warn']};
+$('steps').innerHTML=[
+ {no:'1 · Свой разбор журнала',res:'100 % совпадение',s:'done',p:'Наш разбор сырых блоков совпал с независимым открытым набором данных С. Слотина: бюллетени, голоса, списки и итоги всех голосований за 2024, 2025 и 2026 годы.'},
+ {no:'2 · Портал наблюдения',res:'3 177 из 5 103',s:'done',p:'Обошли весь портал stat.vybory.gov.ru: показанные там голосования совпадают с журналом, но видна лишь их часть (см. A-06).'},
+ {no:'3 · Протоколы комиссий',res:'0 расхождений',s:'done',p:'Электронная часть = протокол ОИК минус сумма протоколов ТИК. Проверили 5 протоколов в Карелии, Белгородской и Магаданской областях — все 91 строка совпали.'},
+ {no:'4 · Криптография',res:'идёт',s:'run',p:'Открытый верификатор заново складывает зашифрованные голоса и проверяет, что опубликованный итог получен из них. Результат появится здесь.'}]
+ .map(s=>`<div class="step"><div class="no">${s.no}</div><div class="res">${s.res}</div><div class="status"><span class="dot" style="background:var(${ST[s.s][1]})"></span>${ST[s.s][0]}</div><p>${s.p}</p></div>`).join('');
+
+// ---------- маршруты ----------
+const VIEWS=['map','about','regions','anomalies','paper','verify'];
+function route(){const h=location.hash.slice(1)||'map';const [v,sub]=h.split('/');const view=VIEWS.includes(v)?v:'map';
+  VIEWS.forEach(n=>{$('v-'+n).hidden=n!==view;});
+  document.querySelectorAll('.nav a').forEach(a=>a.getAttribute('href')==='#'+view?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
+  hideTip();
+  if(view==='map'){requestAnimationFrame(()=>{if(!inited){inited=true;goPreset(isMobile()?'eu':'all');}else applyVB();});}
+  if(view==='paper')requestAnimationFrame(dumbbell);
+  if(view==='anomalies'&&sub){requestAnimationFrame(()=>{const n=$(sub);if(n){n.scrollIntoView({behavior:'smooth',block:'start'});n.classList.add('flash');setTimeout(()=>n.classList.remove('flash'),1800);}});}
+  else if(view!=='map'){$('v-'+view).scrollTop=0;}
+  const cur=document.querySelector('.nav a[aria-current]');if(cur)cur.scrollIntoView({block:'nearest',inline:'nearest'});}
+let inited=false;addEventListener('hashchange',route);
+
+// ---------- приветствие ----------
+function openHelp(){$('dlg').hidden=false;$('dlgGo').focus();}
+function closeHelp(){$('dlg').hidden=true;store.set('deg-seen','1');}
+$('help').onclick=openHelp;document.querySelectorAll('[data-open-help]').forEach(b=>b.onclick=openHelp);
+$('dlgGo').onclick=()=>{closeHelp();location.hash='#map';};$('dlgMore').onclick=closeHelp;
+$('dlg').addEventListener('click',e=>{if(e.target.id==='dlg')closeHelp();});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('dlg').hidden)closeHelp();});
+
+function repaintAll(){paint();if(selected)renderRegion(selected);dumbbell();}
+let rt,wasMobile=isMobile();addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{
+  if(isMobile()!==wasMobile){wasMobile=isMobile();if(selected)setSheet(wasMobile?'peek':'open');goPreset(preset);}else applyVB();
+  if(selected)renderRegion(selected);dumbbell();},150);});
+
+buildMetricUI();paint();renderRank();route();
+if(!store.get('deg-seen'))openHelp();
+})();
+</script>

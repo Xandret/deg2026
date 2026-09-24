@@ -23,3 +23,6 @@ logs/
 .ipynb_checkpoints/
 .env
 secrets*
+
+# сборка сайта (генерируется site/build.py)
+site/dist/
