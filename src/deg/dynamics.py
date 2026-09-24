@@ -1,10 +1,12 @@
 """Динамика ДЭГ 2024 → 2025 → 2026 по регионам на едином методе.
 
 Запуск: run.cmd dynamics
-Источники (решение №17, docs/decisions.md — вариант «в»):
-  2024, 2025 — ПРЕДВАРИТЕЛЬНО готовые таблицы С. Слотина (edg2024.zip, edg2025.zip из elections-main.zip),
-               со ссылкой; для цифр, которые войдут в текст, — позже собственный парсинг сырых дампов.
-  2026       — наши таблицы из сырых блоков (deg2026.duckdb).
+Источники (решение №17, docs/decisions.md):
+  2024, 2025 — собственный парсинг сырых дампов (deg2024.duckdb, deg2025.duckdb; сверка со Слотиным — 0 расхождений).
+               Названия регионов для прошлых лет — справочник «код региона → название», построенный по
+               метаданным портала из таблиц Слотина (elections.csv); сами числа — только наши.
+               Режим --source slotin оставлен для воспроизведения предварительного расчёта.
+  2026       — наши таблицы из сырых блоков (deg2026.duckdb), названия регионов — наш модуль portal.
 
 Единый метод (в 2024/25 в таблицах нет идентификатора избирателя, поэтому считаем не людей, а
 «представительный контракт» УИК — контракт с наибольшим числом бюллетеней на этом УИК; он почти всегда
@@ -29,8 +31,9 @@ from . import config
 
 SQL_METRICS = """
 WITH off AS (SELECT region, (8 - hour(min(ts)))::INT AS toff, min(ts)::DATE AS d0 FROM B GROUP BY 1),
-rep AS (SELECT region, uik, arg_max(contract_id, n) AS cid FROM
-          (SELECT region, uik, contract_id, count(*) n FROM B GROUP BY ALL) GROUP BY 1, 2),
+rep AS (SELECT region, uik, contract_id AS cid FROM
+          (SELECT region, uik, contract_id, count(*) n FROM B GROUP BY ALL)
+          QUALIFY row_number() OVER (PARTITION BY region, uik ORDER BY n DESC, contract_id) = 1),  -- детерминированно
 lst AS (SELECT r.region, r.uik, sum(L.lst) AS lst FROM rep r JOIN L ON L.contract_id = r.cid AND L.uik = r.uik GROUP BY 1, 2),
 bal AS (SELECT r.region, r.uik, count(*) AS n,
                count(*) FILTER (WHERE (b.ts + to_hours(o.toff))::DATE = o.d0 + INTERVAL 0 DAY
@@ -70,6 +73,21 @@ def ours_2026(con, portal_regions: Path):
                     sum(CASE WHEN op = 'addVotersList' THEN n ELSE -n END) lst FROM list_events GROUP BY 1, 2""")
 
 
+def ours_past(con, year: int, db: Path, slotin: Path):
+    con.execute(f"ATTACH IF NOT EXISTS '{db.as_posix()}' AS y{year} (READ_ONLY)")
+    d = slotin / f"edg{year}"
+    con.execute(f"""CREATE OR REPLACE TEMP VIEW RN AS
+        SELECT b.region_code, mode(e.region) AS region
+        FROM (SELECT DISTINCT contract_id, region_code FROM y{year}.ballots) b
+        JOIN read_csv_auto('{(d/'elections.csv').as_posix()}') e USING (contract_id) GROUP BY 1""")
+    con.execute(f"""CREATE OR REPLACE TEMP VIEW E AS SELECT c.contract_id, rn.region FROM
+        (SELECT contract_id, mode(region_code) rc FROM y{year}.ballots GROUP BY 1) c JOIN RN rn ON rn.region_code = c.rc""")
+    con.execute(f"CREATE OR REPLACE TEMP VIEW B AS SELECT b.contract_id, b.uik::BIGINT uik, b.ts_msk_s ts, e.region FROM y{year}.ballots b JOIN E e USING (contract_id)")
+    con.execute(f"CREATE OR REPLACE TEMP VIEW V AS SELECT contract_id FROM y{year}.votes")
+    con.execute(f"""CREATE OR REPLACE TEMP VIEW L AS SELECT contract_id, uik::BIGINT uik,
+        sum(CASE WHEN op IN ('addVotersList','addToVotersList') THEN n ELSE -n END) lst FROM y{year}.list_events GROUP BY 1, 2""")
+
+
 def ensure_slotin_years(dest: Path, years=(2024, 2025)):
     for y in years:
         out = dest / f"edg{y}"
@@ -91,14 +109,18 @@ def main(argv=None):
     ap.add_argument("--slotin", type=Path, default=config.EXTERNAL / "slotin")
     ap.add_argument("--threads", type=int, default=12)
     ap.add_argument("--memory", default="8GB")
+    ap.add_argument("--source", choices=["ours", "slotin"], default="ours", help="источник 2024/2025")
     a = ap.parse_args(argv)
     ensure_slotin_years(a.slotin)
     con = duckdb.connect(str(a.db), read_only=True)
     con.execute(f"SET threads={a.threads}; SET memory_limit='{a.memory}'")
     frames = []
     for y in (2024, 2025):
-        slotin_year(con, y, a.slotin)
-        frames.append(con.execute(SQL_METRICS).df().assign(year=y, source="slotin"))
+        if a.source == "ours":
+            ours_past(con, y, config.DERIVED / f"deg{y}.duckdb", a.slotin)
+        else:
+            slotin_year(con, y, a.slotin)
+        frames.append(con.execute(SQL_METRICS).df().assign(year=y, source=a.source))
     ours_2026(con, config.DERIVED / "portal" / "regions.parquet")
     frames.append(con.execute(SQL_METRICS).df().assign(year=2026, source="ours"))
     import pandas as pd
