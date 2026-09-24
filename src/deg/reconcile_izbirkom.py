@@ -154,6 +154,24 @@ def reconcile(con, nodes, reps):
                 picked.append(full[0][0])
             else:
                 ambiguous.append(dict(tik=nodes[t]["name"], n_uik=len(u), candidates=c[:5]))
+        # Фолбэк «по исключению»: ровно одна ТИК без списка УИК в записи (узел не раскрывали).
+        # Берём контракты субъекта с нужным числом позиций, полностью лежащие вне УИК всех известных ТИК
+        # дерева и ещё не выбранные. Если такой ровно один — берём его и помечаем способ привязки.
+        if len(ambiguous) == 1 and ambiguous[0]["n_uik"] == 0:
+            known = set()
+            for k, n in nodes.items():
+                if n.get("type") == 4 and subject_code(nodes, k) == region:
+                    known |= uiks_of(nodes, k)
+            dim = f"[[1,1,{len(cand_rows)}]]"
+            rest = con.execute(f"""
+                SELECT b.contract_id, count(DISTINCT b.uik) FILTER (WHERE b.uik IN ({','.join(map(str, known)) or '-1'})) AS inside
+                FROM ballots b JOIN contracts k USING (contract_id)
+                WHERE b.region_code = '{region}' AND k.dimension = '{dim}'
+                GROUP BY 1 HAVING inside = 0""").fetchall()
+            rest = [r[0] for r in rest if r[0] not in picked]
+            if len(rest) == 1:
+                picked.append(rest[0]); ambiguous[0]["resolved_by_exclusion"] = rest[0]; ambiguous = []
+                entry["note"] = "одна ТИК привязана по исключению (в записи нет списка её УИК)"
         entry.update(region=region, contracts=len(picked), ambiguous=ambiguous)
         if ambiguous:
             entry["status"] = "не удалось однозначно привязать контракты части ТИК"; report.append(entry); continue
@@ -193,7 +211,8 @@ def main(argv=None):
     print(f"HAR: {len(files)}, узлов дерева: {len(nodes)}, протоколов: {len(reps)}")
     con = duckdb.connect(str(a.db), read_only=True)
     for e in reconcile(con, nodes, reps):
-        print(f"\n== {e['oik']} | protocolNum={e['protocol']} | ТИК: {e['n_tik']} | {e['status']}")
+        print(f"\n== {e['oik']} | protocolNum={e['protocol']} | ТИК: {e['n_tik']} | {e['status']}"
+              + (f" ({e['note']})" if e.get("note") else ""))
         if e.get("missing_tik_reports"):
             print("   нет протоколов ТИК:", ", ".join(e["missing_tik_reports"]))
         for amb in e.get("ambiguous", []):
