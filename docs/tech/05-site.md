@@ -9,8 +9,8 @@
 ## Как собрать
 ```
 run.cmd site_data        # агрегаты из deg2026.duckdb → data/derived/site/site_data.json (секунды)
-run.cmd deg_vs_paper     # если ещё не было
-.venv\Scripts\python.exe site\build.py   # → site\dist\deg2026-site.html (+ preview.html для браузера)
+run.cmd deg_results; run.cmd izbirkom_snapshot   # итоги ДЭГ и бумага
+scripts\build_site.cmd   # открытые данные + site\public\ и site\dist\ (docs/tech/10-public-site.md)
 ```
 `site/dist/` в .gitignore — это продукт сборки. `site/geo.json` в репозитории (≈93 КБ).
 Пересобрать геометрию: скачать `ne_10m_admin_1_states_provinces.geojson` (naturalearthdata.com) в

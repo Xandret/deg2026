@@ -1,7 +1,7 @@
 """Разбор и перепроверка результатов криптопроверки (этап после crypto_verify).
 
 Запуск:
-  run.cmd crypto_recheck parse                      # логи logs/verify-*.log → data/derived/crypto_verify/statuses.csv
+  run.cmd crypto_recheck parse                      # логи logs/verify-*.log[.gz] → data/derived/crypto_verify/statuses.csv
   run.cmd crypto_recheck extract [--src shard-3] [--only ID,ID]
         # для непроверенных контрактов (INCOMPLETE/FAILED) — отдельные дампы только с их транзакциями,
         # внутри блока транзакция `results` переставлена в конец (остальной порядок сохранён)
@@ -53,10 +53,12 @@ def parse_logs():
     rows, notes, anomalies = [], [], []
     for src in SOURCES:
         path = config.LOGS / f"verify-{src}.log"
+        if not path.exists():                      # логи хранятся сжатыми: logs/verify-*.log.gz
+            path = path.with_name(path.name + ".gz")
         if not path.exists():
             continue
         last, buf = None, b""
-        with open(path, "rb") as f:
+        with (gzip.open(path, "rb") if path.suffix == ".gz" else open(path, "rb")) as f:
             while True:
                 chunk = f.read(1 << 24)
                 if not chunk:
