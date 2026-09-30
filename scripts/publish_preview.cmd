@@ -15,6 +15,9 @@ if not exist ".git" (
   git config user.email Xandret@users.noreply.github.com
   git remote add origin https://github.com/Xandret/deg2026-preview.git
 )
+rem файлы сборки уже с LF: не перекодировать (иначе git предупреждает «LF will be replaced by CRLF»)
+git config core.autocrlf false
+(echo * text=auto eol=lf& echo *.png binary& echo *.zip binary& echo *.xlsx binary)> .gitattributes
 git add -A
 git commit -m "Предварительная версия сайта ДЭГ-2026" || echo (изменений нет)
 git push -u origin main || goto :err

@@ -78,5 +78,9 @@
    "name": "Наши данные",
    "type": "data"
   }
+ },
+ "interfax-russia.ru": {
+  "name": "Интерфакс-Россия",
+  "type": "federal_media"
  }
 }
