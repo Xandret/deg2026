@@ -114,8 +114,8 @@ t = t.replace('__FILES__', j(files))
 
 # 1) страница без <head> — для Artifact (предпросмотр для согласования) и локального просмотра
 dist = OUT / 'dist'; dist.mkdir(exist_ok=True)
-(dist / 'deg2026-site.html').write_text(t_prev, encoding='utf-8')
-(dist / 'preview.html').write_text('<!doctype html><html lang="ru"><head><meta charset="utf-8"></head><body>' + t + '</body></html>', encoding='utf-8')
+(dist / 'deg2026-site.html').write_text(t_prev, encoding='utf-8', newline='\n')
+(dist / 'preview.html').write_text('<!doctype html><html lang="ru"><head><meta charset="utf-8"></head><body>' + t + '</body></html>', encoding='utf-8', newline='\n')
 
 # 2) публичный статический сайт
 if a.preview:
@@ -167,11 +167,11 @@ page = '\n'.join(head) + '\n' + body_head + '\n</head>\n<body>\n' + t[cut:] + \
        '\n<noscript><p style="padding:16px;color:#fff;background:#000">Для карты и таблиц нужен JavaScript. ' \
        'Данные можно скачать без него: <a href="data/deg2026_tables.xlsx">таблицы Excel</a>, ' \
        '<a href="deg2026_open_data.zip">весь набор (ZIP)</a>.</p></noscript>\n</body>\n</html>\n'
-(PUB / 'index.html').write_text(page, encoding='utf-8')
+(PUB / 'index.html').write_text(page, encoding='utf-8', newline='\n')
 
 FAV = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#3987e5"/>'
        '<path d="M8.5 16.5l5 5 10-11" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>\n')
-(PUB / 'favicon.svg').write_text(FAV, encoding='utf-8')
+(PUB / 'favicon.svg').write_text(FAV, encoding='utf-8', newline='\n')
 (PUB / '404.html').write_text('''<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><title>Страница не найдена — ДЭГ-2026 в открытых данных</title>
 <meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
@@ -181,18 +181,18 @@ font:16px/1.5 "Helvetica Neue",Helvetica,Arial,sans-serif;padding:16px;box-sizin
 @media (prefers-color-scheme:light){body{background:#f4f4f5;color:#111}}
 main{max-width:420px}h1{font-size:28px;margin:0 0 8px}a{color:#3987e5}</style></head>
 <body><main><h1>Такой страницы нет</h1><p>Возможно, ссылка устарела. Карта, итоги и данные — на <a href="./">главной странице</a>.</p></main></body></html>
-''', encoding='utf-8')
+''', encoding='utf-8', newline='\n')
 robots = 'User-agent: *\n' + ('Allow: /\n' + (f'Sitemap: {BASE}sitemap.xml\n' if BASE else '') if a.launch else 'Disallow: /\n')
-(PUB / 'robots.txt').write_text(robots, encoding='utf-8')
+(PUB / 'robots.txt').write_text(robots, encoding='utf-8', newline='\n')
 if a.launch and BASE:
     (PUB / 'sitemap.xml').write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-                                     f'<url><loc>{BASE}</loc><lastmod>{dt.date.today().isoformat()}</lastmod></url></urlset>\n', encoding='utf-8')
+                                     f'<url><loc>{BASE}</loc><lastmod>{dt.date.today().isoformat()}</lastmod></url></urlset>\n', encoding='utf-8', newline='\n')
 elif (PUB / 'sitemap.xml').exists():
     (PUB / 'sitemap.xml').write_text('<?xml version="1.0" encoding="UTF-8"?>\n'
-                                     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>\n', encoding='utf-8')
-(PUB / '.nojekyll').write_text('', encoding='utf-8')     # GitHub Pages: отдавать файлы как есть
+                                     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>\n', encoding='utf-8', newline='\n')
+(PUB / '.nojekyll').write_text('', encoding='utf-8', newline='\n')     # GitHub Pages: отдавать файлы как есть
 
-total = sum(p.stat().st_size for p in PUB.rglob('*') if p.is_file())
+total = sum(p.stat().st_size for p in PUB.rglob('*') if p.is_file() and '.git' not in p.relative_to(PUB).parts)
 print(f"dist/deg2026-site.html {os.path.getsize(dist / 'deg2026-site.html'):,} Б; public/index.html "
       f"{os.path.getsize(PUB / 'index.html'):,} Б; весь public {total/1048576:.1f} МБ; "
       + ('ОТКРЫТ ДЛЯ ПОИСКОВИКОВ' if a.launch else 'закрыт от поисковиков (noindex)'))

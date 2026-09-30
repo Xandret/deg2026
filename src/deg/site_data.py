@@ -63,17 +63,19 @@ def build(memory: str, threads: int) -> dict:
     # УИК с 100 % и верх по явке (номер УИК — публичный номер комиссии)
     top = {}
     for rc, uik, lst, n in con.execute("""SELECT rc, uik, lst, n FROM LU2 WHERE lst >= 50
-            QUALIFY row_number() OVER (PARTITION BY rc ORDER BY n / lst DESC, lst DESC) <= 8""").fetchall():
+            QUALIFY row_number() OVER (PARTITION BY rc ORDER BY n / lst DESC, lst DESC, uik) <= 8
+            ORDER BY rc, n / lst DESC, lst DESC, uik""").fetchall():   # uik — однозначный порядок при равенстве
         top.setdefault(rc, []).append([int(uik), int(lst), int(n)])
     for rc, v in top.items():
         if rc in regions:
             regions[rc]["top_uiks"] = v
 
     # почасовая кривая (МСК, час от 18.09 00:00) и сдвиг местного времени
+    # floor, а не //: в DuckDB // над DOUBLE даёт дробь, и ::INT округлял её — часы сдвигались на полчаса (сверка 30.09)
     for rc, toff in con.execute("SELECT region_code, (8 - hour(min(ts_msk_s)))::INT FROM ballots GROUP BY 1").fetchall():
         if rc in regions:
             regions[rc]["toff"] = toff
-    for rc, h, k in con.execute("""SELECT region_code, (epoch(ts_msk_s - TIMESTAMP '2026-09-18 00:00:00') // 3600)::INT h, count(*)
+    for rc, h, k in con.execute("""SELECT region_code, floor(epoch(ts_msk_s - TIMESTAMP '2026-09-18 00:00:00') / 3600)::INT h, count(*)
                                    FROM ballots GROUP BY ALL""").fetchall():
         if rc in regions and 0 <= h < 72:
             regions[rc].setdefault("hourly", [0] * 72)[h] = k

@@ -28,7 +28,7 @@ def write_csv(df: pd.DataFrame, name: str, files: list, sheets: dict | None = No
         if df[c].dtype.kind == "f" and df[c].dropna().apply(float.is_integer).all():
             df[c] = df[c].astype("Int64")
     p = OUT / name; tmp = p.with_suffix(".tmp")
-    df.to_csv(tmp, index=False, encoding="utf-8-sig"); os.replace(tmp, p)
+    df.to_csv(tmp, index=False, encoding="utf-8-sig", lineterminator="\n"); os.replace(tmp, p)
     files.append((name, len(df)))
     if sheets is not None:
         sheets[name] = df
@@ -222,13 +222,13 @@ def main():
     desc["deg2026_tables.xlsx"] = "те же таблицы одной книгой Excel с русскими заголовками (без списка голосований и криптопроверки)"
     for n, k in files:
         readme.append(f"| `{n}` | {'' if k is None else f'{k:,}'.replace(',', ' ')} | {desc.get(n, '')} |")
-    (OUT / "README.md").write_text("\n".join(readme) + "\n", encoding="utf-8")
+    (OUT / "README.md").write_text("\n".join(readme) + "\n", encoding="utf-8", newline="\n")
     z = OUT.parent / "deg2026_open_data.zip"
     with zipfile.ZipFile(z, "w", zipfile.ZIP_DEFLATED) as zf:
         for p in sorted(OUT.iterdir()):
             zf.write(p, f"deg2026_open_data/{p.name}")
     manifest = [dict(file=n, rows=k, bytes=(OUT / n).stat().st_size, desc=desc.get(n, "")) for n, k in files]
-    (OUT / "manifest.json").write_text(json.dumps(dict(zip_bytes=z.stat().st_size, files=manifest), ensure_ascii=False, indent=1), encoding="utf-8")
+    (OUT / "manifest.json").write_text(json.dumps(dict(zip_bytes=z.stat().st_size, files=manifest), ensure_ascii=False, indent=1), encoding="utf-8", newline="\n")
     for m in manifest:
         print(f"{m['file']:45s} {str(m['rows'] or ''):>8} {m['bytes']/1024:9.0f} КБ")
     print(f"архив: {z.stat().st_size/1024/1024:.1f} МБ")
