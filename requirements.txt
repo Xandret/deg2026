@@ -8,3 +8,4 @@ lxml>=5.2
 matplotlib>=3.9
 tqdm>=4.66
 pytest>=8
+openpyxl>=3.1
