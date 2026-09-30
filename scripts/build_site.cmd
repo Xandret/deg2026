@@ -6,6 +6,7 @@ cd /d "%~dp0\.."
 chcp 65001 >nul
 set PYTHONPATH=src
 set PYTHONUTF8=1
+.venv\Scripts\python.exe -m deg.run candidate_parties || goto :err
 .venv\Scripts\python.exe -m deg.run all_results || goto :err
 .venv\Scripts\python.exe -m deg.run regions_social || goto :err
 .venv\Scripts\python.exe -m deg.run monitor || goto :err

@@ -51,6 +51,12 @@ def results_data(REPO):
     def cand_shares(d):
         rows = sorted(n for n in d if n >= 13); tot = sum(d[n][0] for n in rows) or 1
         return [100 * d[n][0] / tot for n in rows]
+    # партия-выдвиженец кандидата (run.cmd candidate_parties; снимок izbirkom)
+    PARTY = {}
+    pp = base / 'deg_results/sm_parties.csv'
+    if pp.exists():
+        for r in csv.DictReader(open(pp, encoding='utf-8')):
+            PARTY[(r['district'], r['candidate'])] = (r['party'], r['party_short'])
     # округа
     sm = {}
     for r in csv.DictReader(open(base/'deg_results/sm_by_district.csv', encoding='utf-8')):
@@ -59,7 +65,8 @@ def results_data(REPO):
                                'contracts': int(r['contracts']),
                                'mapping': 'verified' if lines else ('exact' if r['mapping'] == 'exact' else 'recon'),
                                'source': (next(iter(lines.values()))[2] if lines else None), 'cands': []})
-        d['cands'].append({'name': r['candidate'], 'deg': int(r['deg_votes']), 'paper': None})
+        pp = PARTY.get((dn, r['candidate']), ('', ''))
+        d['cands'].append({'name': r['candidate'], 'party': pp[1], 'partyFull': pp[0], 'deg': int(r['deg_votes']), 'paper': None})
     for dn, d in sm.items():
         lines = L.get((dn, 1))
         if lines:
@@ -97,7 +104,8 @@ news = {'items': json.load(open(REPO / 'data/news/timeline.json', encoding='utf-
 elect = json.load(open(REPO / 'data/derived/site/elections.json', encoding='utf-8'))   # run.cmd all_results
 social = json.load(open(REPO / 'data/derived/site/social.json', encoding='utf-8'))    # run.cmd regions_social
 monitor = json.load(open(REPO / 'data/derived/site/monitor.json', encoding='utf-8'))  # run.cmd monitor
-for k, v in (('__GEO__', geo_out), ('__DATA__', data), ('__RES__', res), ('__NEWS__', news), ('__ELECT__', elect), ('__SOCIAL__', social), ('__MONITOR__', monitor)):
+about = json.load(open(REPO / 'data/about/about.json', encoding='utf-8'))            # кто подготовил, откуда данные
+for k, v in (('__GEO__', geo_out), ('__DATA__', data), ('__RES__', res), ('__NEWS__', news), ('__ELECT__', elect), ('__SOCIAL__', social), ('__MONITOR__', monitor), ('__ABOUT__', about)):
     assert t.count(k) == 1, k
     t = t.replace(k, j(v))
 assert t.count('__FILES__') == 1

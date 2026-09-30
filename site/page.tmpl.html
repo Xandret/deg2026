@@ -312,6 +312,10 @@ td:first-child{color:var(--text)}
 .mon .dd{font-size:var(--fs-sm);color:var(--text-2)}
 .sevb{display:inline-block;font-size:var(--fs-xs);font-weight:700;padding:1px 7px;border-radius:999px;margin-right:6px;border:1px solid var(--line-2);color:var(--text-2)}
 @media (max-width:600px){.mon .ep{grid-template-columns:1fr}}
+.prov{margin:var(--s5) 0}
+.prov h2{margin:0 0 var(--s3);font-size:var(--fs-lg)}
+.prov p{margin:0 0 var(--s3)}
+.prov ul{margin:0;padding-left:20px}
 .bars .br{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) 64px;gap:var(--s4);align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
 .bars .br:last-child{border-bottom:0}
 .bars .nm{font-size:var(--fs-md);color:var(--text)}
@@ -357,7 +361,7 @@ td:first-child{color:var(--text)}
 
       <div class="float side" id="side">
         <h1>Электронное голосование — 2026</h1>
-        <p class="sub">18–20 сентября · 32 региона · данные блокчейна ДЭГ</p>
+        <p class="sub">18–20 сентября · 32 региона · данные блокчейна ДЭГ · <a href="#about">кто подготовил</a></p>
         <p class="label" id="mlabel">Раскрасить регионы по</p>
         <div class="mlist" id="mlist" role="group" aria-labelledby="mlabel"></div>
         <p class="label">Шкала</p>
@@ -392,6 +396,7 @@ td:first-child{color:var(--text)}
       <div class="page">
         <h1>Что это за сайт</h1>
         <p class="lede">В сентябре 2026 года жители 32 регионов могли проголосовать через интернет — это называется <b>дистанционное электронное голосование (ДЭГ)</b>. Каждое действие системы записывалось в открытый журнал — блокчейн. Мы скачали этот журнал целиком, пересчитали всё сами и сравнили с официальными протоколами.</p>
+        <div class="box prov" id="provBox"></div>
         <div class="tiles" id="aboutTiles"></div>
 
         <h2>Как устроено ДЭГ — за минуту</h2>
@@ -433,7 +438,7 @@ td:first-child{color:var(--text)}
           <dt>Квинтиль</dt><dd>Пятая часть регионов. Шкала на карте делит 32 региона на пять равных групп — от самых низких значений к самым высоким.</dd>
         </dl>
         <div class="btns" style="margin-top:28px"><a class="btn pri" href="#map" style="display:inline-flex;align-items:center;text-decoration:none">Открыть карту</a></div>
-        <p class="foot">Автор — Xandret. Рабочая версия: числа проверены, формулировки могут уточняться. Источники и ограничения — в разделе <a href="#verify">«Проверка»</a>.</p>
+        <p class="foot"><span class="provAuthor"></span> Рабочая версия: числа проверены, формулировки могут уточняться. Источники и ограничения — в разделе <a href="#verify">«Проверка»</a>.</p>
       </div>
     </section>
 
@@ -486,34 +491,35 @@ td:first-child{color:var(--text)}
     <section class="view read" id="v-paper" hidden>
       <div class="page" style="max-width:1100px">
         <h1>Результаты: как голосовали через интернет</h1>
-        <p class="lede">Итоги ДЭГ по выборам в Госдуму для всех 32 регионов и всех 81 одномандатного округа, посчитанные прямо из журнала, — и сравнение с голосованием на участках там, где официальные протоколы уже сверены.</p>
+        <p class="lede">Итоги ДЭГ по выборам в Госдуму для всех 32 регионов и всех 81 одномандатного округа, посчитанные прямо из журнала, — и сравнение <b>бумаги и ДЭГ</b>: как голосовали на избирательных участках бумажными бюллетенями и как — через интернет, там, где официальные протоколы уже сверены.</p>
         <div class="note" id="resStatus"></div>
         <div class="tiles" id="resTiles"></div>
         <div class="box" id="resMain"></div>
 
-        <h2>Лидеры округов: участки против ДЭГ</h2>
-        <p>Для каждого округа с официальным протоколом — кандидат, победивший на участках: его доля на участках (оранжевая точка) и среди электронных голосов (синяя). Отсортировано по разнице.</p>
+        <h2>Лидеры округов: бумага против ДЭГ</h2>
+        <p>Для каждого округа с официальным протоколом — кандидат, победивший на бумаге (на участках): его доля на бумаге (оранжевая точка) и среди электронных голосов (синяя). В скобках — партия, которая его выдвинула. Отсортировано по разнице.</p>
         <div class="box"><div class="lk" id="ldKey"></div><div class="chart" id="ldChart" style="margin:0"></div></div>
 
         <h2>Партии по регионам</h2>
-        <p>Выберите партию. Синяя точка — её доля среди электронных голосов региона, оранжевая — на участках (там, где есть протоколы всех округов региона). Пунктир — среднее по всем электронным голосам.</p>
+        <p>Выберите партию. Синяя точка — её доля среди электронных голосов региона, оранжевая — на бумаге (там, где есть протоколы всех округов региона). Пунктир — среднее по всем электронным голосам.</p>
         <div class="seg scrollseg" role="group" aria-label="Партия" id="partySeg"></div>
         <div class="box"><div class="lk" id="plKey"></div><div class="chart" id="plChart" style="margin:0"></div></div>
 
         <h2>Одномандатные округа</h2>
-        <p>Выберите регион — ниже результаты каждого его округа. Метка у округа показывает, насколько точно электронные голоса собраны по округу: журнал делит округ на части по ТИК, и не все части подписаны.</p>
+        <p>Выберите регион — ниже результаты каждого его округа: оранжевая точка — бумага, синяя — ДЭГ. Рядом с фамилией — партия, выдвинувшая кандидата. Метка у округа показывает, насколько точно электронные голоса собраны по округу: журнал делит округ на части по ТИК, и не все части подписаны.</p>
         <div class="chips" id="mapKey"></div>
+        <p class="hnote" id="partyKey"></p>
         <label class="sel"><span class="label" style="margin:0">Регион</span><select id="regSel"></select></label>
         <div id="smCards" class="smcards"></div>
 
         <h2>Все округа одной таблицей</h2>
-        <p>Кто лидирует среди электронных голосов в каждом округе и с каким отрывом. Нажмите на заголовок, чтобы отсортировать, на строку — чтобы открыть округ.</p>
+        <p>Кто лидирует среди электронных голосов в каждом округе, от какой партии и с каким отрывом. Нажмите на заголовок, чтобы отсортировать, на строку — чтобы открыть округ.</p>
         <div class="box tscroll" style="padding:var(--s3)"><table id="smT"></table></div>
 
         <h2>Явка в сверенных округах</h2>
-        <p>Через интернет голосуют те, кто заранее записался, поэтому явка ДЭГ намного выше, чем на участках. Это главная причина, почему результаты различаются: голосуют разные люди. Явка — выданные бюллетени к списку; «доля ДЭГ» — доля электронных среди всех действительных бюллетеней округа.</p>
+        <p>Через интернет голосуют те, кто заранее записался, поэтому явка ДЭГ намного выше, чем на бумаге (на участках). Это главная причина, почему результаты различаются: голосуют разные люди. Явка — выданные бюллетени к списку; «доля ДЭГ» — доля электронных среди всех действительных бюллетеней округа.</p>
         <div class="box tscroll"><table id="turnT"></table></div>
-        <p class="foot">Участки = протокол ОИК минус протокол ДЭГ (или сумма протоколов ТИК). Протоколы — из открытого снимка izbirkom.ru от 22.09 (github.com/Arhydemon/elections_20_09_26), проверенного нами: 384 строки совпали с протоколами, которые мы записали сами, а все 66 электронных протоколов — с журналом ДЭГ. Доли — от голосов за кандидатов (партии), разница — в процентных пунктах.</p>
+        <p class="foot">Бумага = протокол ОИК минус протокол ДЭГ (или сумма протоколов ТИК). Протоколы — из открытого снимка izbirkom.ru от 22.09 (github.com/Arhydemon/elections_20_09_26), проверенного нами: 384 строки совпали с протоколами, которые мы записали сами, а все 66 электронных протоколов — с журналом ДЭГ. Доли — от голосов за кандидатов (партии), разница — в процентных пунктах. Партия-выдвиженец — по регистрационным данным кандидатов на izbirkom.ru.</p>
       </div>
     </section>
 
@@ -543,7 +549,7 @@ td:first-child{color:var(--text)}
         <p><b>Чего здесь нет.</b> Данные не позволяют узнать, кто как проголосовал (так задумано), различить причины исключения из списка, проверить, кто держал телефон. Необычные закономерности — повод для вопросов, а не вывод о принуждении.</p>
         <p><b>Приватность.</b> Обезличенные идентификаторы избирателей используются только внутри расчётов и не публикуются; наружу выходят суммы по регионам и участкам.</p>
         <p><b>Карта.</b> Состав и границы субъектов — в соответствии с Конституцией Российской Федерации (89 субъектов, включая Республику Крым, Севастополь, ДНР, ЛНР, Запорожскую и Херсонскую области). Контуры — Natural Earth (общественное достояние), упрощены. Серым показаны субъекты, где федеральная платформа ДЭГ в 2026 году не применялась.</p>
-        <p class="foot">Источники: блокчейн ДЭГ-2026 (копии для наблюдателей); портал наблюдения stat.vybory.gov.ru; протоколы на izbirkom.ru; открытый набор данных и верификатор С. Слотина (feddeg); публикации В. Толстогузова (<a href="https://t.me/s/zanashepravo" target="_blank" rel="noopener">t.me/zanashepravo</a>). Код расчётов — репозиторий deg2026 (будет открыт). Автор — Xandret.</p>
+        <p class="foot">Источники: блокчейн ДЭГ-2026 (копии для наблюдателей); портал наблюдения stat.vybory.gov.ru; протоколы на izbirkom.ru; открытый набор данных и верификатор С. Слотина (feddeg); публикации В. Толстогузова (<a href="https://t.me/s/zanashepravo" target="_blank" rel="noopener">t.me/zanashepravo</a>). Код расчётов — репозиторий deg2026 (будет открыт). <span class="provAuthor"></span></p>
       </div>
     </section>
 
@@ -610,7 +616,8 @@ td:first-child{color:var(--text)}
     <h2 id="dlgT">Что это за карта</h2>
     <ol>
       <li>В сентябре 2026 года в 32 регионах можно было <b>проголосовать через интернет</b>. Каждое действие системы записывалось в открытый журнал.</li>
-      <li>Мы <b>скачали журнал целиком и пересчитали всё сами</b>: сколько людей записалось, сколько получили бюллетень, когда голосовали. Итоги сошлись с официальными протоколами.</li>
+      <li><b>Откуда данные.</b> <span class="provSource"></span></li>
+      <li>Мы <b>пересчитали всё сами</b>: сколько людей записалось, сколько получили бюллетень, когда голосовали. Итоги сошлись с официальными протоколами.</li>
       <li><b>Цвет региона</b> — выбранный показатель. <b>Нажмите на регион</b>, чтобы увидеть подробности. <b>Кружки с цифрами</b> — найденные странности с разбором.</li>
     </ol>
     <div class="btns"><button class="btn pri" type="button" id="dlgGo">Смотреть карту</button><a class="btn" href="#about" id="dlgMore" style="display:inline-flex;align-items:center;text-decoration:none">Подробнее о ДЭГ</a></div>
@@ -626,6 +633,7 @@ td:first-child{color:var(--text)}
 <script type="application/json" id="elData">__ELECT__</script>
 <script type="application/json" id="socData">__SOCIAL__</script>
 <script type="application/json" id="monData">__MONITOR__</script>
+<script type="application/json" id="aboutData">__ABOUT__</script>
 <script>
 (function(){
 "use strict";
@@ -888,9 +896,9 @@ const CARDS=[
   p:'22 % проголосовавших получили бюллетень в первый час (Курганская — 32,5 %, Марий Эл — 30,1 %). 83 участка из 22 914 со 100 % явкой ДЭГ, 37 из них — в Чувашии (4,8 % её УИК). Явки выше 100 % нет нигде.',
   li:['УИК, где больше половины проголосовали в первый час: 24 (Курганская — 8).','Ночью (до 08:00 и после 20:00 местного) — 6,4 %: ДЭГ круглосуточный, это не нарушение.'],
   alt:'Такие паттерны типичны для организованного голосования, но и для небольших сплочённых списков. Причину по открытым данным установить нельзя.',src:[]},
- {id:'A-09',title:'ДЭГ и бумага: лидеры округов получают в ДЭГ меньше',v:['ok','nv'],big:'27 из 36',bigl:'округов, где победитель на участках получил в ДЭГ меньше (медиана −8,1 п. п.)',
-  p:'В 36 округах с официальными протоколами медианная явка на участках 47,8 %, среди записавшихся на ДЭГ — 91,1 %. Победитель на участках чаще теряет в ДЭГ (до −27,5 п. п. в Новочеркасском), но везде остаётся первым. У «Единой России» разница зависит от региона: от −17,2 (Смоленская) до +14,2 п. п.',
-  li:['Данные участков — официальные протоколы (открытый снимок izbirkom, проверенный нами, и наши записи). Подробно — в разделе <a href="#paper">«Результаты»</a>.'],
+ {id:'A-09',title:'ДЭГ и бумага: лидеры округов получают в ДЭГ меньше',v:['ok','nv'],big:'27 из 36',bigl:'округов, где победитель на бумаге получил в ДЭГ меньше (медиана −8,1 п. п.)',
+  p:'В 36 округах с официальными протоколами медианная явка на бумаге (на участках) 47,8 %, среди записавшихся на ДЭГ — 91,1 %. Победитель на бумаге чаще теряет в ДЭГ (до −27,5 п. п. в Новочеркасском), но везде остаётся первым. У «Единой России» разница зависит от региона: от −17,2 (Смоленская) до +14,2 п. п.',
+  li:['Данные бумажного голосования — официальные протоколы (открытый снимок izbirkom, проверенный нами, и наши записи). Подробно — в разделе <a href="#paper">«Результаты»</a>.'],
   alt:'Состав избирателей ДЭГ другой (запись через Госуслуги). Различие подтверждено, причины по этим данным не проверяемы.',src:[]},
  {id:'A-10',title:'Шесть голосов приняты в блокчейн, но не посчитаны',v:['ok','tech'],big:'6 из 12 088 372',bigl:'принятых голосов 2026 года не вошли в итог',
   p:'Криптопроверка нашла голоса, которые контракт принял, а в итог они не попали: у пяти (все — Московская область) повреждён шифротекст, у одного (Пушкинский г. о.) неверное доказательство допустимости выбора. Без них каждый итог сходится до единицы.',
@@ -911,7 +919,7 @@ $('cards').querySelectorAll('[data-sel]').forEach(a=>a.addEventListener('click',
 
 // ---------- что это: плитки и показатели ----------
 $('aboutTiles').innerHTML=[['4 055 819','записались на ДЭГ','из них 38 461 позже исключены'],['3 650 803','получили бюллетень','явка 90,88 % (официально 90,87 %)'],
-  ['12,2 млн','электронных бюллетеней','у одного человека их бывает несколько'],['0','расхождений с протоколами','проверено 5 протоколов, 91 строка']]
+  ['12,2 млн','электронных бюллетеней','у одного человека их бывает несколько'],['0','расхождений с протоколами','66 из 66 электронных протоколов совпали с журналом']]
   .map(t=>`<div class="tile"><div class="v">${t[0]}</div><div class="l">${t[1]}</div><div class="n">${t[2]}</div></div>`).join('');
 $('defs').innerHTML=METRICS.map(m=>`<div class="def"><h3>${m.t}<span>${m.norm}</span></h3><p>${m.what}</p><p class="why">${m.why}</p></div>`).join('');
 
@@ -931,7 +939,7 @@ $('resTiles').innerHTML=[[num(plNatTot),'электронных голосов �
 let party=0;
 RS.parties.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.textContent=p;b.setAttribute('aria-pressed',i===0);
   b.onclick=()=>{party=i;[...$('partySeg').children].forEach(x=>x.setAttribute('aria-pressed',x===b));plChart();};$('partySeg').appendChild(b);});
-$('plKey').innerHTML=`<span><i class="dot" style="background:var(--deg)"></i>ДЭГ</span><span><i class="dot" style="background:var(--paper)"></i>на участках</span><span><i class="dash" style="border-color:var(--text-3)"></i>ДЭГ, все регионы</span>`;
+$('plKey').innerHTML=`<span><i class="dot" style="background:var(--deg)"></i>ДЭГ</span><span><i class="dot" style="background:var(--paper)"></i>бумага (участки)</span><span><i class="dash" style="border-color:var(--text-3)"></i>ДЭГ, все регионы</span>`;
 function dotRow(sv,{y,x,deg,paper,label,labelW,W,right,tipHtml,rh}){
   el('text',{x:labelW-8,y:y+4,'text-anchor':'end',style:'fill:var(--text);font-size:12px'},sv).textContent=label;
   if(paper!=null)el('line',{x1:x(paper),x2:x(deg),y1:y,y2:y,stroke:css('--axis'),'stroke-width':2},sv);
@@ -951,12 +959,17 @@ function plChart(){const host=$('plChart');if(!host.offsetParent)return;host.inn
   el('line',{x1:x(nat),x2:x(nat),y1:m.t,y2:H-m.b,stroke:css('--text-3'),'stroke-dasharray':'4 3'},sv);
   rows.forEach((r,i)=>dotRow(sv,{y:m.t+i*rh+rh/2,x,deg:r.deg,paper:r.paper,label:W<560?shortReg(r.name):r.name,labelW:lw,W,rh,
     right:r.paper!=null?((r.deg-r.paper>0?'+':'−')+dec(Math.abs(r.deg-r.paper))):dec(r.deg),
-    tipHtml:`<b>${esc(r.name)}</b> · ${esc(RS.parties[party])}<br><span class="k">ДЭГ:</span> ${pct(r.deg,2)} (${num(r.n)} из ${num(r.valid)})`+(r.paper!=null?`<br><span class="k">На участках:</span> ${pct(r.paper,2)}<br><span class="k">Разница:</span> ${(r.deg-r.paper>0?'+':'')+dec(r.deg-r.paper,2)} п. п.`:'<br><span class="k">Участки — после сверки протокола</span>')}));
+    tipHtml:`<b>${esc(r.name)}</b> · ${esc(RS.parties[party])}<br><span class="k">ДЭГ:</span> ${pct(r.deg,2)} (${num(r.n)} из ${num(r.valid)})`+(r.paper!=null?`<br><span class="k">Бумага:</span> ${pct(r.paper,2)}<br><span class="k">Разница:</span> ${(r.deg-r.paper>0?'+':'')+dec(r.deg-r.paper,2)} п. п.`:'<br><span class="k">Участки — после сверки протокола</span>')}));
   host.appendChild(sv);}
 // округа
-const MAPK={verified:['Есть протокол','--good','Электронная часть совпала с официальным протоколом; есть данные участков.'],exact:['Собрано точно','--accent','Все части округа однозначно определены по журналу.'],recon:['Реконструкция','--warn','Часть частей округа отнесена к нему по сходству результатов; ждёт сверки с протоколом.']};
+const MAPK={verified:['Есть протокол','--good','Электронная часть совпала с официальным протоколом; есть данные бумажного голосования.'],exact:['Собрано точно','--accent','Все части округа однозначно определены по журналу.'],recon:['Реконструкция','--warn','Часть частей округа отнесена к нему по сходству результатов; ждёт сверки с протоколом.']};
 const mk=k=>`<span class="chip"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(${MAPK[k][1]})"></span>${MAPK[k][0]}</span>`;
 $('mapKey').innerHTML=Object.keys(MAPK).map(mk).join('');
+const PSHORT={'ЕР':'«Единая Россия»','КПРФ':'КПРФ','ЛДПР':'ЛДПР','НЛ':'«Новые люди»','СРЗП':'«Справедливая Россия — За правду»','ПП':'Партия пенсионеров','КР':'«Коммунисты России»','Родина':'«Родина»','Зелёные':'«Зелёные»','Яблоко':'«Яблоко»','ППД':'Партия прямой демократии','самовыдв.':'самовыдвиженец'};
+const usedP=[...new Set(RS.sm.flatMap(d=>d.cands.map(c=>c.party)).filter(Boolean))];
+$('partyKey').innerHTML='<b>Партии:</b> '+Object.keys(PSHORT).filter(k=>usedP.includes(k)).map(k=>k===PSHORT[k]?esc(k):`${esc(k)} — ${esc(PSHORT[k])}`).join('; ')+'.';
+const withP=(name,p)=>shortName(name)+(p?` (${p})`:'');
+const fullP=c=>c.partyFull?(c.partyFull==='самовыдвижение'?'самовыдвижение':'выдвинут партией '+c.partyFull):'';
 const regsSM=[...new Set(RS.sm.map(d=>d.region))].sort((a,b)=>a.localeCompare(b,'ru'));
 $('regSel').innerHTML=regsSM.map(r=>`<option>${esc(r)}</option>`).join('');
 $('regSel').value='Белгородская область';
@@ -966,43 +979,43 @@ function smCards(){const host=$('smCards');if(!host.offsetParent)return;const re
     const card=document.createElement('div');card.className='box smcard';card.id='sm-'+d.id;
     const tot=d.cands.reduce((a,c)=>a+c.deg,0);const rows=d.cands.map(c=>({...c,dp:100*c.deg/tot})).sort((a,b)=>b.dp-a.dp);
     card.innerHTML=`<div class="smhead"><h3>${esc(d.district)}</h3>${mk(d.mapping)}</div><p class="cap">${num(tot)} электронных голосов · ${d.contracts} частей по ТИК · ${rows.length} кандидатов</p>`;
-    const W=host.clientWidth-34||560,lw=Math.min(170,W*.4),rh=26,m={t:4,b:24,r:52},H=m.t+rows.length*rh+m.b;
+    const W=host.clientWidth-34||560,lw=Math.min(220,W*.46),rh=26,m={t:4,b:24,r:52},H=m.t+rows.length*rh+m.b;
     const mx=Math.max(...rows.map(r=>Math.max(r.dp,r.paper||0)));const step=mx>40?20:10;const xmax=Math.ceil(mx/step)*step;const x=v=>lw+v/xmax*(W-lw-m.r);
     const sv=el('svg',{viewBox:`0 0 ${W} ${H}`,height:H,role:'img','aria-label':'Результаты кандидатов'});axisX(sv,x,xmax,m.t,H-m.b,step);
-    rows.forEach((r,i)=>dotRow(sv,{y:m.t+i*rh+rh/2,x,deg:r.dp,paper:r.paper,label:shortName(r.name),labelW:lw,W,rh,
+    rows.forEach((r,i)=>dotRow(sv,{y:m.t+i*rh+rh/2,x,deg:r.dp,paper:r.paper,label:withP(r.name,r.party),labelW:lw,W,rh,
       right:r.paper!=null?((r.dp-r.paper>0?'+':'−')+dec(Math.abs(r.dp-r.paper))):dec(r.dp),
-      tipHtml:`<b>${esc(r.name)}</b><br><span class="k">ДЭГ:</span> ${pct(r.dp,2)} (${num(r.deg)})`+(r.paper!=null?`<br><span class="k">На участках:</span> ${pct(r.paper,2)}<br><span class="k">Разница:</span> ${(r.dp-r.paper>0?'+':'')+dec(r.dp-r.paper,2)} п. п.`:'')}));
+      tipHtml:`<b>${esc(r.name)}</b>${r.partyFull?`<br>${esc(fullP(r))}`:''}<br><span class="k">ДЭГ:</span> ${pct(r.dp,2)} (${num(r.deg)})`+(r.paper!=null?`<br><span class="k">Бумага:</span> ${pct(r.paper,2)}<br><span class="k">Разница:</span> ${(r.dp-r.paper>0?'+':'')+dec(r.dp-r.paper,2)} п. п.`:'')}));
     const ch=document.createElement('div');ch.className='chart';ch.style.margin='0';ch.appendChild(sv);card.appendChild(ch);host.appendChild(card);});}
 // таблица всех округов
 const SMROWS=RS.sm.map(d=>{const tot=d.cands.reduce((a,c)=>a+c.deg,0);const s=[...d.cands].sort((a,b)=>b.deg-a.deg);
-  return{d,region:d.region,district:d.district,leader:shortName(s[0].name),ls:100*s[0].deg/tot,second:s[1]?shortName(s[1].name):'—',margin:s[1]?100*(s[0].deg-s[1].deg)/tot:100,tot,mapping:d.mapping};});
-const SMCOLS=[{k:'region',t:'Регион',f:r=>esc(shortReg(r.region))},{k:'district',t:'Округ',f:r=>esc(r.district)},{k:'leader',t:'Лидер в ДЭГ',f:r=>esc(r.leader)},{k:'ls',t:'Доля',f:r=>pct(r.ls)},
+  return{d,region:d.region,district:d.district,leader:shortName(s[0].name),lparty:s[0].party||'—',lpartyFull:s[0].partyFull||'',ls:100*s[0].deg/tot,second:s[1]?shortName(s[1].name):'—',margin:s[1]?100*(s[0].deg-s[1].deg)/tot:100,tot,mapping:d.mapping};});
+const SMCOLS=[{k:'region',t:'Регион',f:r=>esc(shortReg(r.region))},{k:'district',t:'Округ',f:r=>esc(r.district)},{k:'leader',t:'Лидер в ДЭГ',f:r=>esc(r.leader)},{k:'lparty',t:'Партия',f:r=>`<span title="${esc(r.lpartyFull)}">${esc(r.lparty)}</span>`},{k:'ls',t:'Доля',f:r=>pct(r.ls)},
   {k:'margin',t:'Отрыв от 2-го',f:r=>dec(r.margin)+' п. п.'},{k:'tot',t:'Голосов',f:r=>num(r.tot)},{k:'mapping',t:'Сборка',f:r=>`<span class="dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(${MAPK[r.mapping][1]})" title="${MAPK[r.mapping][0]}"></span> ${MAPK[r.mapping][0]}`}];
 let smK='ls',smD=-1;
 function smTable(){const t=$('smT');const rows=[...SMROWS].sort((a,b)=>typeof a[smK]==='string'?smD*a[smK].localeCompare(b[smK],'ru'):smD*(a[smK]-b[smK]));
-  t.innerHTML=`<thead><tr>${SMCOLS.map(c=>`<th style="text-align:${['region','district','leader','mapping'].includes(c.k)?'left':'right'}" scope="col" tabindex="0" data-k="${c.k}" ${c.k===smK?`aria-sort="${smD>0?'ascending':'descending'}"`:''}>${c.t}<span class="ar">${c.k===smK?(smD>0?'▲':'▼'):'▼'}</span></th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr tabindex="0" data-id="${r.d.id}">${SMCOLS.map(c=>`<td${['region','district','leader','mapping'].includes(c.k)?' style="text-align:left"':''}>${c.f(r)}</td>`).join('')}</tr>`).join('')}</tbody>`;
-  t.querySelectorAll('th').forEach(th=>{const go=()=>{const k=th.dataset.k;if(k===smK)smD=-smD;else{smK=k;smD=(k==='region'||k==='district'||k==='leader'||k==='mapping')?1:-1;}smTable();};th.onclick=go;th.onkeydown=e=>{if(e.key==='Enter')go();};});
+  t.innerHTML=`<thead><tr>${SMCOLS.map(c=>`<th style="text-align:${['region','district','leader','lparty','mapping'].includes(c.k)?'left':'right'}" scope="col" tabindex="0" data-k="${c.k}" ${c.k===smK?`aria-sort="${smD>0?'ascending':'descending'}"`:''}>${c.t}<span class="ar">${c.k===smK?(smD>0?'▲':'▼'):'▼'}</span></th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr tabindex="0" data-id="${r.d.id}">${SMCOLS.map(c=>`<td${['region','district','leader','lparty','mapping'].includes(c.k)?' style="text-align:left"':''}>${c.f(r)}</td>`).join('')}</tr>`).join('')}</tbody>`;
+  t.querySelectorAll('th').forEach(th=>{const go=()=>{const k=th.dataset.k;if(k===smK)smD=-smD;else{smK=k;smD=(k==='region'||k==='district'||k==='leader'||k==='lparty'||k==='mapping')?1:-1;}smTable();};th.onclick=go;th.onkeydown=e=>{if(e.key==='Enter')go();};});
   t.querySelectorAll('tbody tr').forEach(tr=>{const go=()=>{const d=RS.sm.find(x=>x.id==tr.dataset.id);$('regSel').value=d.region;smCards();const n=$('sm-'+d.id);if(n){n.scrollIntoView({behavior:'smooth',block:'center'});n.classList.add('flash');setTimeout(()=>n.classList.remove('flash'),1600);}};tr.onclick=go;tr.onkeydown=e=>{if(e.key==='Enter')go();};});}
-$('turnT').innerHTML=`<thead><tr><th>Округ</th><th>Явка на участках</th><th>Явка ДЭГ</th><th>Доля ДЭГ в голосах</th></tr></thead><tbody>`+RS.turnout.map(d=>`<tr><td>${esc(d.label)}</td><td>${pct(d.paper)}</td><td>${pct(d.deg)}</td><td>${pct(d.share)}</td></tr>`).join('')+'</tbody>';
+$('turnT').innerHTML=`<thead><tr><th>Округ</th><th>Явка на бумаге</th><th>Явка ДЭГ</th><th>Доля ДЭГ в голосах</th></tr></thead><tbody>`+RS.turnout.map(d=>`<tr><td>${esc(d.label)}</td><td>${pct(d.paper)}</td><td>${pct(d.deg)}</td><td>${pct(d.share)}</td></tr>`).join('')+'</tbody>';
 // главное: считается из данных, обновляется само
 const sgn=v=>(v>0?'+':v<0?'−':'')+dec(Math.abs(v));
 const med=a=>{const s=[...a].sort((x,y)=>x-y);const n=s.length;return n?(n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2):NaN;};
 const LEAD=RS.sm.filter(d=>d.cands.some(c=>c.paper!=null)).map(d=>{const tot=d.cands.reduce((a,c)=>a+c.deg,0);const w=[...d.cands].sort((a,b)=>b.paper-a.paper)[0];
-  const dw=[...d.cands].sort((a,b)=>b.deg-a.deg)[0];return{d,name:w.name,paper:w.paper,deg:100*w.deg/tot,diff:100*w.deg/tot-w.paper,same:dw===w};});
+  const dw=[...d.cands].sort((a,b)=>b.deg-a.deg)[0];return{d,name:w.name,party:w.party,partyFull:w.partyFull,paper:w.paper,deg:100*w.deg/tot,diff:100*w.deg/tot-w.paper,same:dw===w};});
 (function(){const t=RS.turnout,L=LEAD,down=L.filter(x=>x.diff<0).length;
   const er=RS.pl.filter(r=>r.paper).map(r=>100*r.deg[0]/r.valid-r.paper[0]);
   const items=[
-   `<b>Явка.</b> В ${t.length} округах с протоколами медианная явка на участках — ${pct(med(t.map(x=>x.paper)))}, среди записавшихся на ДЭГ — ${pct(med(t.map(x=>x.deg)))}. Электронные голоса — в среднем ${pct(med(t.map(x=>x.share)))} всех голосов округа.`,
-   `<b>Лидеры округов.</b> Победитель на участках получил в ДЭГ меньше в ${down} из ${L.length} округов; медианная разница ${(med(L.map(x=>x.diff))>0?'+':'−')+dec(Math.abs(med(L.map(x=>x.diff))))} п. п. ${(n=>n?`В ${n} округах среди электронных голосов лидирует другой кандидат.`:'Но во всех этих округах он остаётся первым и среди электронных голосов.')(L.filter(x=>!x.same).length)}`,
-   er.length?`<b>Единая Россия.</b> В ${er.length} регионах, где есть протоколы всех округов, разница «ДЭГ минус участки» — от ${sgn(Math.min(...er))} до ${sgn(Math.max(...er))} п. п.: направление зависит от региона.`:''];
+   `<b>Явка.</b> В ${t.length} округах с протоколами медианная явка на бумаге — ${pct(med(t.map(x=>x.paper)))}, среди записавшихся на ДЭГ — ${pct(med(t.map(x=>x.deg)))}. Электронные голоса — в среднем ${pct(med(t.map(x=>x.share)))} всех голосов округа.`,
+   `<b>Лидеры округов.</b> Победитель на бумаге получил в ДЭГ меньше в ${down} из ${L.length} округов; медианная разница ${(med(L.map(x=>x.diff))>0?'+':'−')+dec(Math.abs(med(L.map(x=>x.diff))))} п. п. ${(n=>n?`В ${n} округах среди электронных голосов лидирует другой кандидат.`:'Но во всех этих округах он остаётся первым и среди электронных голосов.')(L.filter(x=>!x.same).length)}`,
+   er.length?`<b>Единая Россия.</b> В ${er.length} регионах, где есть протоколы всех округов, разница «ДЭГ минус бумага» — от ${sgn(Math.min(...er))} до ${sgn(Math.max(...er))} п. п.: направление зависит от региона.`:''];
   $('resMain').innerHTML='<p class="label">Главное по сверенным округам</p><ul style="margin:0;padding-left:20px">'+items.filter(Boolean).map(x=>`<li style="margin:0 0 8px">${x}</li>`).join('')+'</ul><p style="margin:8px 0 0;font-size:13px;color:var(--text-3)">Голосуют разные люди: на ДЭГ записываются заранее через Госуслуги. Разница — факт, а не доказательство нарушения.</p>';})();
-$('ldKey').innerHTML=`<span><i class="dot" style="background:var(--paper)"></i>на участках</span><span><i class="dot" style="background:var(--deg)"></i>ДЭГ</span>`;
+$('ldKey').innerHTML=`<span><i class="dot" style="background:var(--paper)"></i>бумага (участки)</span><span><i class="dot" style="background:var(--deg)"></i>ДЭГ</span>`;
 function ldChart(){const host=$('ldChart');if(!host.offsetParent)return;host.innerHTML='';
   const rows=[...LEAD].sort((a,b)=>a.diff-b.diff);const W=host.clientWidth||600,narrow=W<560,lw=Math.min(narrow?150:290,W*.42),rh=24,m={t:6,b:24,r:52},H=m.t+rows.length*rh+m.b;
   const mx=Math.max(...rows.map(r=>Math.max(r.deg,r.paper))),mn=Math.min(...rows.map(r=>Math.min(r.deg,r.paper)));const step=10,lo=Math.max(0,Math.floor((mn-1)/step)*step),xmax=Math.ceil((mx+1)/step)*step;
   const x=v=>lw+(v-lo)/(xmax-lo)*(W-lw-m.r);const sv=el('svg',{viewBox:`0 0 ${W} ${H}`,height:H,role:'img','aria-label':'Лидеры округов'});axisX(sv,x,xmax,m.t,H-m.b,step,lo);
-  rows.forEach((r,i)=>dotRow(sv,{y:m.t+i*rh+rh/2,x,deg:r.deg,paper:r.paper,label:narrow?r.d.district:`${r.d.district} · ${shortName(r.name)}`,labelW:lw,W,rh,
-    right:(r.diff>0?'+':'−')+dec(Math.abs(r.diff)),tipHtml:`<b>${esc(r.d.region)}, ${esc(r.d.district)}</b><br>${esc(r.name)}<br><span class="k">На участках:</span> ${pct(r.paper,2)}<br><span class="k">ДЭГ:</span> ${pct(r.deg,2)}<br><span class="k">Разница:</span> ${(r.diff>0?'+':'')+dec(r.diff,2)} п. п.`}));
+  rows.forEach((r,i)=>dotRow(sv,{y:m.t+i*rh+rh/2,x,deg:r.deg,paper:r.paper,label:narrow?`${r.d.district}${r.party?` (${r.party})`:''}`:`${r.d.district} · ${withP(r.name,r.party)}`,labelW:lw,W,rh,
+    right:(r.diff>0?'+':'−')+dec(Math.abs(r.diff)),tipHtml:`<b>${esc(r.d.region)}, ${esc(r.d.district)}</b><br>${esc(r.name)}${r.partyFull?` — ${esc(fullP(r))}`:''}<br><span class="k">Бумага:</span> ${pct(r.paper,2)}<br><span class="k">ДЭГ:</span> ${pct(r.deg,2)}<br><span class="k">Разница:</span> ${(r.diff>0?'+':'')+dec(r.diff,2)} п. п.`}));
   host.appendChild(sv);}
 function dumbbell(){plChart();smCards();ldChart();}
 smTable();
@@ -1052,6 +1065,16 @@ function renderTL(){const items=NEWS.filter(x=>tlKind==='all'||x.kind===tlKind);
       <div class="tll"><span class="tlsl">Источники:</span> ${x.src.map(srcLink).join('<span class="tlsep">·</span>')}${x.an.filter(a=>!x.src.some(s=>s.url.includes(a))).map(a=>` <span class="tlsep">·</span> <a href="#anomalies/${a}">${a}</a>`).join('')}</div></div></article>`;});
   $('tl').innerHTML=html||'<p>Нет событий.</p>';}
 renderTL();
+
+// ---------- кто подготовил и откуда данные ----------
+(function(){const A=JSON.parse($('aboutData').textContent);
+  const who=A.author+(A.author_note?', '+A.author_note:'');
+  document.querySelectorAll('.provAuthor').forEach(e=>e.textContent='Подготовил: '+who+'.');
+  document.querySelectorAll('.provSource').forEach(e=>e.textContent=A.data_source);
+  const team=(A.team||[]).filter(t=>t.consent);
+  $('provBox').innerHTML=`<h2>Кто подготовил и откуда данные</h2><p><b>Автор:</b> ${esc(who)}.</p><p><b>Данные:</b> ${esc(A.data_source)}</p>`+
+    (team.length?`<p><b>Экспертная группа:</b></p><ul>${team.map(t=>`<li>${esc(t.name)}${t.role?' — '+esc(t.role):''}</li>`).join('')}</ul>`:'')+
+    (A.method?`<p style="margin-top:var(--s3)">${esc(A.method)} Подробно — в разделе <a href="#verify">«Проверка»</a>.</p>`:'');})();
 
 // ---------- монитор ----------
 (function(){const M=JSON.parse($('monData').textContent);

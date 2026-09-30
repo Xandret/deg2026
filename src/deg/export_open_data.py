@@ -44,7 +44,7 @@ RU = {"region_code": "Код региона", "region": "Регион", "rc": "�
       "unpaired_pct": "Бюллетени без голоса, %", "removed_pct": "Исключено, %", "portal_share_pct": "Видно на портале, %",
       "year": "Год", "hour_msk": "Час (МСК)", "uik": "УИК", "list_initial": "Список изначально", "list_added": "Добавлено",
       "list_removed": "Исключено", "valid": "Действительных голосов", "district": "Округ", "mapping": "Привязка к округу",
-      "candidate": "Кандидат", "position": "Позиция в бюллетене", "deg_votes": "Голосов в ДЭГ", "protocol": "Протокол (1 — округ, 2 — партсписки)",
+      "candidate": "Кандидат", "party": "Партия (выдвижение)", "position": "Позиция в бюллетене", "deg_votes": "Голосов в ДЭГ", "protocol": "Протокол (1 — округ, 2 — партсписки)",
       "row": "Строка протокола", "label": "Название строки", "oik": "Всего по ОИК", "deg": "ДЭГ", "paper": "Участки (всего − ДЭГ)",
       "source": "Источник", "contract_id": "Контракт", "uik_min": "УИК от", "uik_max": "УИК до",
       "kind": "Тип", "kind_ru": "Тип выборов", "election": "Выборы", "seats": "Мандатов", "candidates": "Кандидатов/партий",
@@ -136,8 +136,13 @@ def main():
 
     for src, name in (("deg_results/pl_by_region.csv", "duma_deg_party_list_by_region.csv"),
                       ("deg_results/pl_by_tik.csv", "duma_deg_party_list_by_tik.csv"),
-                      ("deg_results/sm_by_district.csv", "duma_deg_single_mandate_by_district.csv"),
+                      ("deg_results/sm_by_district.csv+", "duma_deg_single_mandate_by_district.csv"),
                       ("izbirkom_snapshot/paper_vs_deg_lines.csv", "duma_paper_vs_deg_protocol_lines.csv")):
+        if src.endswith("+"):                           # округа ГД: + партия-выдвиженец кандидата
+            df_ = pd.read_csv(D / src[:-1]).merge(pd.read_csv(D / "deg_results" / "sm_parties.csv")[["district", "candidate", "party"]],
+                                                  on=["district", "candidate"], how="left")
+            write_csv(df_, name, files, sheets)
+            continue
         write_csv(pd.read_csv(D / src), name, files, sheets)
 
     # все выборы (all_results): гонки и строки бюллетеня

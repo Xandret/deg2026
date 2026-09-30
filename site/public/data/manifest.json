@@ -1,5 +1,5 @@
 {
- "zip_bytes": 3787832,
+ "zip_bytes": 3794613,
  "files": [
   {
    "file": "regions_2026.csv",
@@ -40,7 +40,7 @@
   {
    "file": "duma_deg_single_mandate_by_district.csv",
    "rows": 594,
-   "bytes": 102929,
+   "bytes": 117268,
    "desc": "итоги ДЭГ по кандидатам 81 одномандатного округа; mapping — точно/реконструкция"
   },
   {
@@ -100,7 +100,7 @@
   {
    "file": "deg2026_tables.xlsx",
    "rows": null,
-   "bytes": 1944262,
+   "bytes": 1948407,
    "desc": "те же таблицы одной книгой Excel с русскими заголовками (без списка голосований и криптопроверки)"
   }
  ]
