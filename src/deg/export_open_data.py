@@ -9,6 +9,7 @@ from __future__ import annotations
 import csv
 import json
 import os
+import re
 import shutil
 import zipfile
 from pathlib import Path
@@ -20,6 +21,14 @@ from . import config
 
 OUT = config.REPO / "site" / "public" / "data"
 D = config.DERIVED
+# Дата во всех записях zip и в свойствах xlsx: иначе архив и книга меняются при каждой сборке, даже если данные те же
+STAMP = (2026, 9, 20, 0, 0, 0)
+
+
+def zip_entry(name: str) -> zipfile.ZipInfo:
+    zi = zipfile.ZipInfo(name, date_time=STAMP)
+    zi.compress_type = zipfile.ZIP_DEFLATED; zi.external_attr = 0o644 << 16
+    return zi
 
 
 def write_csv(df: pd.DataFrame, name: str, files: list, sheets: dict | None = None):
@@ -87,6 +96,15 @@ def write_xlsx(sheets: dict, desc: dict, path: Path):
                 w = max(len(str(c.value or "")) for c in list(col)[:200])
                 ws.column_dimensions[col[0].column_letter].width = min(max(8, w + 2), 60)
             ws.auto_filter.ref = ws.dimensions
+    # openpyxl пишет текущее время в записи zip и в docProps/core.xml — переупаковываем с STAMP
+    with zipfile.ZipFile(tmp) as zin:
+        parts = [(i.filename, zin.read(i)) for i in zin.infolist()]
+    w3c = ("%04d-%02d-%02dT%02d:%02d:%02dZ" % STAMP).encode()
+    with zipfile.ZipFile(tmp, "w") as zout:
+        for name, data in parts:
+            if name == "docProps/core.xml":
+                data = re.sub(rb"(<dcterms:(?:created|modified)[^>]*>)[^<]*", rb"\g<1>" + w3c, data)
+            zout.writestr(zip_entry(name), data)
     os.replace(tmp, path)
 
 
@@ -153,11 +171,12 @@ def main():
         races[f"place{i + 1}"] = L.map(lambda x: x[i][0] if len(x) > i else None)
         races[f"place{i + 1}_votes"] = L.map(lambda x: x[i][1] if len(x) > i else None)
         races[f"place{i + 1}_pct"] = L.map(lambda x: x[i][2] if len(x) > i else None)
-    races = races.drop(columns=["leaders", "race"])
+    races = races.drop(columns=["leaders", "co_leaders", "race"])   # порядок строк задан в all_results
     write_csv(races, "all_elections_races_2026.csv", files, sheets)
     ac = pd.read_csv(ar / "contracts.csv")
     op = pd.read_csv(ar / "options.csv")   # выборы и округ — по contract_id из contracts_2026.csv
-    write_csv(op[["contract_id", "position", "name", "party", "votes"]], "all_elections_ballot_lines_2026.csv", files)
+    write_csv(op[["contract_id", "position", "name", "party", "votes"]].sort_values(["contract_id", "position"]),
+              "all_elections_ballot_lines_2026.csv", files)
 
     # регионы × Росстат (regions_social)
     write_csv(pd.read_csv(D / "regions_social" / "indicators.csv"), "regions_social_indicators_2026.csv", files, sheets)
@@ -166,7 +185,7 @@ def main():
     dc = pd.read_csv(D / "deg_results" / "duma_contracts.csv")
     pc = pd.read_parquet(D / "portal" / "contracts.parquet")[["contract_id", "election_name", "level", "district_name"]]
     allc = con.sql("""SELECT b.contract_id, mode(b.region_code)::INT region_code, count(*) ballots
-                      FROM ballots b GROUP BY 1""").df()
+                      FROM ballots b GROUP BY 1 ORDER BY 1""").df()   # merge(how="left") порядок сохраняет
     votes = con.sql("SELECT contract_id, count(*) votes FROM votes GROUP BY 1").df()
     allc = allc.merge(votes, on="contract_id", how="left").merge(pc, on="contract_id", how="left") \
                .merge(dc[["contract_id", "kind", "district", "district_how", "tik_pair"]], on="contract_id", how="left")
@@ -211,7 +230,7 @@ def main():
             "duma_paper_vs_deg_protocol_lines.csv": "строки протоколов ОИК: всего, ДЭГ, бумага — для 36 округов",
             "contracts_2026.csv": "все 5 103 голосования: регион, выборы, округ, тип выборов, бюллетени, голоса, видимость на портале",
             "crypto_verification_2024_2026.csv": "итог криптопроверки каждого голосования 2024–2026 и каким способом подтверждён",
-            "all_elections_races_2026.csv": "все 2 207 «гонок» ДЭГ-2026 (Госдума, губернатор, заксобрания, муниципальные): бюллетени, явка, три лидера в ДЭГ, отрыв",
+            "all_elections_races_2026.csv": "все 2 207 «гонок» ДЭГ-2026 (Госдума, губернатор, заксобрания, муниципальные): бюллетени, явка, три лидера в ДЭГ, отрыв; при равенстве голосов выше тот, кто выше в бюллетене (кандидаты в бюллетене — по алфавиту)",
             "all_elections_ballot_lines_2026.csv": "каждая строка бюллетеня каждого из 5 103 голосований: кандидат/партия (с портала) и голоса ДЭГ (из журнала); выборы и округ — по contract_id в contracts_2026.csv",
             "regions_social_indicators_2026.csv": "32 региона: показатели ДЭГ и Росстата («Регионы России — 2025»: городское население, возраст, доход, безработица, интернет)",
             "regions_social_correlations_2026.csv": "ранговые корреляции Спирмена «показатель ДЭГ × показатель Росстата»: ρ, 95 % ДИ (бутстреп), p (перестановки), поправка Холма",
@@ -224,9 +243,10 @@ def main():
         readme.append(f"| `{n}` | {'' if k is None else f'{k:,}'.replace(',', ' ')} | {desc.get(n, '')} |")
     (OUT / "README.md").write_text("\n".join(readme) + "\n", encoding="utf-8", newline="\n")
     z = OUT.parent / "deg2026_open_data.zip"
-    with zipfile.ZipFile(z, "w", zipfile.ZIP_DEFLATED) as zf:
+    with zipfile.ZipFile(z, "w") as zf:
         for p in sorted(OUT.iterdir()):
-            zf.write(p, f"deg2026_open_data/{p.name}")
+            if p.name != "manifest.json":   # пишется после архива и описывает его: в архиве была бы копия прошлой сборки
+                zf.writestr(zip_entry(f"deg2026_open_data/{p.name}"), p.read_bytes())
     manifest = [dict(file=n, rows=k, bytes=(OUT / n).stat().st_size, desc=desc.get(n, "")) for n, k in files]
     (OUT / "manifest.json").write_text(json.dumps(dict(zip_bytes=z.stat().st_size, files=manifest), ensure_ascii=False, indent=1), encoding="utf-8", newline="\n")
     for m in manifest:

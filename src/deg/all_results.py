@@ -66,6 +66,16 @@ KIND_RU = {"duma_pl": "Госдума, партсписок", "duma_sm": "Гос
            "unknown": "Тип не определён (портал не публикует бюллетень)"}
 
 
+def ranked(o: pd.DataFrame, key: pd.Series) -> pd.Series:
+    """Голоса по кандидатам (партиям) гонки, по убыванию.
+
+    При равенстве голосов выше тот, кто выше в бюллетене (у кандидатов это алфавит, у партий — жеребьёвка), затем —
+    по названию. Порядок полный и не зависит от порядка строк на входе: при пересборке лидер ничьей не меняется.
+    Ничья за 1-е место видна по co_leaders (на сайте — «делят 1-е место»)."""
+    t = o.groupby(key).agg(votes=("votes", "sum"), pos=("position", "min")).rename_axis("k").reset_index()
+    return t.sort_values(["votes", "pos", "k"], ascending=[False, True, True]).set_index("k").votes
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     con = duckdb.connect(str(config.DERIVED / "deg2026.duckdb"), read_only=True)
@@ -78,7 +88,8 @@ def main():
              l AS (SELECT contract_id, sum(CASE WHEN op = 'addVotersList' THEN n ELSE -n END) list_final FROM list_events GROUP BY 1)
         SELECT c.contract_id, c.dim, r.payload, b.rc, b.ballots, b.uiks, v.votes, l.list_final
         FROM c LEFT JOIN r USING (contract_id) LEFT JOIN b USING (contract_id)
-               LEFT JOIN v USING (contract_id) LEFT JOIN l USING (contract_id)""").df()
+               LEFT JOIN v USING (contract_id) LEFT JOIN l USING (contract_id)
+        ORDER BY c.contract_id""").df()   # от порядка строк зависят options.csv, contracts.csv и порядок в гонках
     base["res"] = base.payload.map(lambda s: json.loads(json.loads(s)["results"]["RESULTS"])[0])
     base["seats"] = base.dim.map(lambda d: json.loads(d)[0][1])
     base["options"] = base.dim.map(lambda d: json.loads(d)[0][2])
@@ -163,7 +174,7 @@ def main():
         key = o["name"].fillna("№" + o.position.astype(str))
         if g.kind.iloc[0].endswith("_pl"):                  # партсписок: партия под каноническим названием
             key = o["party"].fillna(key)
-        tot = o.groupby(key, sort=False).votes.sum().sort_values(ascending=False)
+        tot = ranked(o, key)
         first = g.iloc[0]; seats = int(first.seats)
         marks = int(tot.sum())
         races.append(dict(race=race, region=first.region, rc=first.rc, level=first.level, kind=first.kind,
@@ -175,8 +186,10 @@ def main():
                           names=bool(g.names.all()),
                           leaders=json.dumps([[n, int(v), round(100 * v / max(1, marks), 2)] for n, v in tot.head(max(seats, 3)).items()],
                                              ensure_ascii=False),
+                          co_leaders=json.dumps([n for n, v in tot.iloc[1:].items() if v == tot.iloc[0] and v > 0],
+                                                ensure_ascii=False),   # делят 1-е место с лидером
                           margin_pp=round(100 * (tot.iloc[seats - 1] - tot.iloc[seats]) / max(1, marks), 2) if len(tot) > seats else None))
-    races = pd.DataFrame(races).sort_values(["region", "level", "election", "district"])
+    races = pd.DataFrame(races).sort_values(["region", "level", "election", "district", "race"])   # race уникален
 
     cols = ["contract_id", "rc", "region", "level", "kind", "kind_ru", "election_id", "election_name", "district_name",
             "seats", "options", "uiks", "list_final", "ballots", "votes", "marks", "turnout_pct", "on_portal", "names",
@@ -207,9 +220,11 @@ def site_json(df: pd.DataFrame, opt: pd.DataFrame, races: pd.DataFrame, check: d
         L = json.loads(r.leaders)
         rows.append([int(r.rc), KINDS.index(r.kind), ei[r.election], short(r.district) if isinstance(r.district, str) else "",
                      int(r.seats), int(r.candidates), int(r.ballots), float(r.turnout_pct),
-                     L[0][0], L[0][2], None if pd.isna(r.margin_pp) else float(r.margin_pp), int(bool(r.names))])
+                     L[0][0], L[0][2], None if pd.isna(r.margin_pp) else float(r.margin_pp), int(bool(r.names)),
+                     json.loads(r.co_leaders)])
     gov = races[races.kind == "head_region"].iloc[0]
-    go = opt[opt.contract_id.isin(df[df.race == gov.race].contract_id)].groupby("name", sort=False).votes.sum().sort_values(ascending=False)
+    go = opt[opt.contract_id.isin(df[df.race == gov.race].contract_id)]
+    go = ranked(go, go["name"])
     pl = {}
     for kind in ("reg_pl", "duma_pl"):
         for r in races[races.kind == kind].itertuples():

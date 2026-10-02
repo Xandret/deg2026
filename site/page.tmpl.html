@@ -572,7 +572,7 @@ td:first-child{color:var(--text)}
         <div class="box tscroll" style="margin-top:var(--s5)"><table id="zsT"></table></div>
 
         <h2>Все округа и выборы</h2>
-        <p>Каждая строка — одна «гонка»: одномандатный или многомандатный округ либо вся территория выборов (партсписок, губернатор, глава). Лидер — первый по голосам в ДЭГ; «отрыв» — от ближайшего соперника (в многомандатном округе — между последним проходным местом и первым непроходным). Это только электронная часть: на участках результат может быть другим.</p>
+        <p>Каждая строка — одна «гонка»: одномандатный или многомандатный округ либо вся территория выборов (партсписок, губернатор, глава). Лидер — первый по голосам в ДЭГ; если голосов поровну у нескольких, показаны все, кто делит 1-е место. «Отрыв» — от ближайшего соперника (в многомандатном округе — между последним проходным местом и первым непроходным). Это только электронная часть: на участках результат может быть другим.</p>
         <div class="filters">
           <label class="sel"><span class="label" style="margin:0">Регион</span><select id="elReg"></select></label>
           <label class="sel"><span class="label" style="margin:0">Тип</span><select id="elKind"></select></label>
@@ -1174,18 +1174,20 @@ function zsChart(){const host=$('zsChart');if(!host||!host.offsetParent)return;h
   const kinds=[...new Set(EL.races.map(r=>r[1]))].sort((a,b)=>a-b);
   $('elKind').innerHTML='<option value="">Все типы</option>'+kinds.map(k=>`<option value="${k}">${esc(EL.kindRu[k])}</option>`).join('');
   const low=s=>String(s).toLowerCase().replace(/ё/g,'е');
-  const rows=EL.races.map(r=>({rc:r[0],k:r[1],e:EL.elections[r[2]],d:r[3],seats:r[4],nc:r[5],b:r[6],t:r[7],ln:r[8],lp:r[9],mg:r[10],nm:r[11],reg:regName(r[0])}));
-  rows.forEach(r=>r.q=low(r.e+' '+r.d+' '+r.ln+' '+r.reg));
+  const rows=EL.races.map(r=>({rc:r[0],k:r[1],e:EL.elections[r[2]],d:r[3],seats:r[4],nc:r[5],b:r[6],t:r[7],ln:r[8],lp:r[9],mg:r[10],nm:r[11],tie:r[12]||[],reg:regName(r[0])}));
+  rows.forEach(r=>r.q=low(r.e+' '+r.d+' '+[r.ln,...r.tie].join(' ')+' '+r.reg));
   rows.sort((a,b)=>a.reg.localeCompare(b.reg,'ru')||a.k-b.k||a.e.localeCompare(b.e,'ru')||a.d.localeCompare(b.d,'ru',{numeric:true}));
   let lim=50,cur=rows;
   function draw(){const rg=$('elReg').value,kd=$('elKind').value,q=low($('elQ').value.trim());
     cur=rows.filter(r=>(!rg||String(r.rc)===rg)&&(kd===''||String(r.k)===kd)&&(!q||r.q.includes(q)));
     $('elCount').textContent=`Найдено: ${num(cur.length)} из ${num(rows.length)}`;
     const PLK=k=>EL.kinds[k].endsWith('_pl'),seatsTxt=r=>PLK(r.k)?'—':r.seats;
-    const leader=r=>r.nm?esc(PLK(r.k)?r.ln:shortName(r.ln)):esc(r.ln)+' <span class="kd">имя не опубликовано</span>';
+    const leader=r=>{const a=[r.ln,...r.tie].map(n=>esc(r.nm&&!PLK(r.k)?shortName(n):n));   // r.tie — делят с лидером 1-е место
+      return (a.length>1?a.slice(0,-1).join(', ')+' и '+a[a.length-1]:a[0])+(r.nm?'':` <span class="kd">${a.length>1?'имена не опубликованы':'имя не опубликовано'}</span>`);};
+    const lead=r=>r.tie.length?'Делят 1-е место в ДЭГ':'Лидер в ДЭГ',lpct=r=>(r.tie.length?'по ':'')+pct(r.lp);
     const mob=isMobile();$('elTbox').hidden=mob;$('elCards').hidden=!mob;
-    if(mob){$('elCards').innerHTML=cur.slice(0,lim).map(r=>`<div class="rc"><div class="rt">${esc(shortReg(r.reg))} · ${esc(EL.kindRu[r.k])}</div><div class="re">${esc(r.e)}</div><div class="rd">${esc(r.d||'вся территория')}${PLK(r.k)||r.seats===1?'':` · мест: ${r.seats}`}</div><div class="rl">Лидер в ДЭГ: ${leader(r)} <b>${pct(r.lp)}</b></div><div class="rm">бюллетеней ДЭГ ${num(r.b)} · явка ${pct(r.t)} · кандидатов ${r.nc}${r.mg==null?'':` · отрыв ${dec(r.mg)} п. п.`}</div></div>`).join('');}
-    else $('elT').innerHTML=`<thead><tr><th>Регион</th><th>Выборы</th><th>Округ</th><th>Мест</th><th>Бюллетеней ДЭГ</th><th>Явка ДЭГ</th><th>Лидер в ДЭГ</th><th>Отрыв, п. п.</th></tr></thead><tbody>${cur.slice(0,lim).map(r=>`<tr><td>${esc(shortReg(r.reg))}</td><td>${esc(r.e)}<span class="kd">${esc(EL.kindRu[r.k])}</span></td><td>${esc(r.d||'вся территория')}</td><td>${seatsTxt(r)}</td><td>${num(r.b)}</td><td>${pct(r.t)}</td><td>${leader(r)} <span class="kd">${pct(r.lp)} · кандидатов: ${r.nc}</span></td><td>${r.mg==null?'—':dec(r.mg)}</td></tr>`).join('')}</tbody>`;
+    if(mob){$('elCards').innerHTML=cur.slice(0,lim).map(r=>`<div class="rc"><div class="rt">${esc(shortReg(r.reg))} · ${esc(EL.kindRu[r.k])}</div><div class="re">${esc(r.e)}</div><div class="rd">${esc(r.d||'вся территория')}${PLK(r.k)||r.seats===1?'':` · мест: ${r.seats}`}</div><div class="rl">${lead(r)}: ${leader(r)} <b>${lpct(r)}</b></div><div class="rm">бюллетеней ДЭГ ${num(r.b)} · явка ${pct(r.t)} · кандидатов ${r.nc}${r.mg==null?'':` · отрыв ${dec(r.mg)} п. п.`}</div></div>`).join('');}
+    else $('elT').innerHTML=`<thead><tr><th>Регион</th><th>Выборы</th><th>Округ</th><th>Мест</th><th>Бюллетеней ДЭГ</th><th>Явка ДЭГ</th><th>Лидер в ДЭГ</th><th>Отрыв, п. п.</th></tr></thead><tbody>${cur.slice(0,lim).map(r=>`<tr><td>${esc(shortReg(r.reg))}</td><td>${esc(r.e)}<span class="kd">${esc(EL.kindRu[r.k])}</span></td><td>${esc(r.d||'вся территория')}</td><td>${seatsTxt(r)}</td><td>${num(r.b)}</td><td>${pct(r.t)}</td><td>${leader(r)} <span class="kd">${r.tie.length?'делят 1-е место, ':''}${lpct(r)} · кандидатов: ${r.nc}</span></td><td>${r.mg==null?'—':dec(r.mg)}</td></tr>`).join('')}</tbody>`;
     $('elMore').hidden=cur.length<=lim;$('elMore').textContent=`Показать ещё (${num(Math.min(100,cur.length-lim))})`;}
   let qt;$('elReg').onchange=()=>{lim=50;draw();};$('elKind').onchange=()=>{lim=50;draw();};$('elQ').oninput=()=>{clearTimeout(qt);qt=setTimeout(()=>{lim=50;draw();},150);};
   $('elMore').onclick=()=>{lim+=100;draw();};draw();window.elDraw=draw;})();
