@@ -8,7 +8,8 @@
     если в паре обе размерности = 10 (Вологодская, Калининградская, Липецкая) — PL тот, чьё
     распределение голосов ближе к видимым PL региона (разрыв на порядок: ~0,1 против ~1,1).
   * SM → округ: видимый контракт — по порталу; невидимый — по размерности, если в регионе она у округов
-    уникальна (точно); иначе по близости распределения голосов к видимому контракту округа (реконструкция,
+    уникальна (точно); иначе по номерам УИК контракта и дереву комиссий из снимка izbirkom (точно, how='uik');
+    если и этого нет — по близости распределения голосов к видимому контракту округа (реконструкция,
     помечается how='sim', нуждается в проверке по протоколам ОИК).
 Выход: duma_contracts.csv, pl_by_region.csv, pl_by_tik.csv, sm_by_district.csv. Только итоги голосований
 (публичные), без данных об избирателях.
@@ -33,6 +34,38 @@ def share(v):
     return v / max(1.0, v.sum())
 
 
+def uik_to_oik() -> dict:
+    """(код субъекта, номер УИК) → название ОИК по дереву комиссий выборов в Госдуму из открытого снимка izbirkom
+    (data/external/izbirkom_snapshot/commissions.jsonl: у каждой записи — дети с parentId). Нет снимка — пустой словарь."""
+    f = config.EXTERNAL / "izbirkom_snapshot" / "commissions.jsonl"
+    if not f.exists():
+        return {}
+    node = {}
+    for line in open(f, encoding="utf-8", errors="replace"):
+        rec = json.loads(line)
+        rc = rec.get("_subjectRfCode")
+        for n in [rec, *(rec.get("children") or [])]:
+            v = node.setdefault(n["id"], {})
+            for k in ("parentId", "type", "number", "name"):
+                if n.get(k) is not None:
+                    v[k] = n[k]
+            if rc is not None:
+                v.setdefault("rc", str(rc))
+
+    def oik(i):
+        for _ in range(6):
+            n = node.get(i)
+            if not n:
+                return None
+            if n.get("type") == 3:
+                return n.get("name")
+            i = n.get("parentId")
+        return None
+
+    return {(n["rc"], int(n["number"])): o for i, n in node.items()
+            if n.get("type") == 5 and n.get("number") is not None and "rc" in n and (o := oik(i))}
+
+
 def build():
     con = duckdb.connect(str(config.DERIVED / "deg2026.duckdb"), read_only=True)
     con.execute("SET memory_limit='3GB'")
@@ -46,7 +79,7 @@ def build():
     sig = con.sql("""SELECT contract_id, mode(region_code) rc, count(*) ballots,
                         md5(string_agg(DISTINCT uik::VARCHAR, ',' ORDER BY uik::VARCHAR)) sig,
                         min(uik) uik_min, max(uik) uik_max, count(DISTINCT uik) uiks
-                     FROM ballots GROUP BY 1""").df()
+                     FROM ballots GROUP BY 1 ORDER BY 1""").df()
     d = (sig.merge(dims, on="contract_id").merge(res[["contract_id", "vec"]], on="contract_id")
          .merge(pc[["contract_id", "level", "district_name"]], on="contract_id", how="left"))
     d = d[(d.level == "FEDERAL") | d.level.isna()].copy()
@@ -61,9 +94,10 @@ def build():
     kind, how_k = {}, {}
     for (rc, _), g in d.groupby(["rc", "sig"]):
         a, b = g.iloc[0], g.iloc[1]
-        if a.vis_kind or b.vis_kind:
-            x = a if a.vis_kind else b; y = b if a.vis_kind else a
-            kind[x.contract_id], kind[y.contract_id] = x.vis_kind, ("SM" if x.vis_kind == "PL" else "PL")
+        va, vb = (v if isinstance(v, str) else None for v in (a.vis_kind, b.vis_kind))   # NaN в pandas 3 — истина
+        if va or vb:
+            x, y, xv = (a, b, va) if va else (b, a, vb)
+            kind[x.contract_id], kind[y.contract_id] = xv, ("SM" if xv == "PL" else "PL")
             how_k[a.contract_id] = how_k[b.contract_id] = "portal"
         elif a.dim != b.dim:
             ka = "PL" if a.dim == "[[1,1,10]]" else "SM"
@@ -79,6 +113,19 @@ def build():
     # одномандатные округа
     sm = d[d.kind == "SM"]
     vis = sm[sm.visible]
+    # По номерам УИК: ОИК, к которой по дереву комиссий izbirkom относятся УИК, выдавшие бюллетени контракта.
+    # Точнее сходства результатов: 02.10 сходство ошиблось в 4 контрактах Московской обл. (обмен между округами).
+    u2o = uik_to_oik()
+    by_uik = {}
+    if u2o:
+        hid = "','".join(sm[~sm.visible].contract_id)
+        cu = con.sql(f"""SELECT contract_id, region_code::VARCHAR rc, uik, count(*) n FROM ballots
+                         WHERE contract_id IN ('{hid}') GROUP BY ALL""").df()
+        cu["oik"] = [u2o.get((rc, int(u))) for rc, u in zip(cu.rc, cu.uik)]
+        for cid, g in cu.groupby("contract_id"):
+            top = g.groupby("oik").n.sum()
+            if len(top) and top.max() >= 0.99 * g.n.sum():
+                by_uik[cid] = top.idxmax()
     dist, how_d = {}, {}
     for _, r in sm.iterrows():
         if r.visible:
@@ -86,6 +133,8 @@ def build():
         cand = vis[(vis.rc == r.rc) & (vis.dim == r.dim)]
         if len(cand) == 1:
             dist[r.contract_id], how_d[r.contract_id] = cand.district_name.iloc[0], "dimension"; continue
+        if by_uik.get(r.contract_id) in set(cand.district_name):
+            dist[r.contract_id], how_d[r.contract_id] = by_uik[r.contract_id], "uik"; continue
         sims = sorted((np.abs(share(r.vec) - share(v)).sum(), dn) for v, dn in zip(cand.vec, cand.district_name))
         dist[r.contract_id] = sims[0][1]
         how_d[r.contract_id] = f"sim {sims[0][0]:.2f}/{sims[1][0]:.2f}" if len(sims) > 1 else "sim"

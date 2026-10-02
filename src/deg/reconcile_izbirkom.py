@@ -115,16 +115,20 @@ def chain_for_tik(con, region, uiks, n_positions):
 
 
 def chain_totals(con, cids):
+    """Строки протокола ДЭГ по журналу. Сверено 02.10 со всеми строками 66 официальных протоколов ДЭГ:
+    «принято» — только голоса, записанные контрактом (vote_hash не пуст; 2 голоса после закрытия не в счёт, A-10);
+    «в списке» — избиратели, чей баланс «добавлен − исключён» > 0 (один избиратель в Сыктывкарском округе
+    исключён дважды: add − remove занижало список на 1, протокол считает людей)."""
     ids = "','".join(cids)
     nb = con.execute(f"SELECT count(*) FROM ballots WHERE contract_id IN ('{ids}')").fetchone()[0]
-    nv = con.execute(f"SELECT count(*) FROM votes WHERE contract_id IN ('{ids}')").fetchone()[0]
-    add, rem = con.execute(f"""SELECT coalesce(sum(n) FILTER (WHERE op='addVotersList'),0),
-        coalesce(sum(n) FILTER (WHERE op='removeFromVotersList'),0) FROM list_events WHERE contract_id IN ('{ids}')""").fetchone()
+    nv = con.execute(f"SELECT count(*) FROM votes WHERE contract_id IN ('{ids}') AND vote_hash IS NOT NULL").fetchone()[0]
+    nl = con.execute(f"""SELECT count(*) FROM (SELECT contract_id, user_hash FROM list_hashes WHERE contract_id IN ('{ids}')
+        GROUP BY 1, 2 HAVING sum(CASE WHEN op = 'addVotersList' THEN 1 ELSE -1 END) > 0)""").fetchone()[0]
     res = None
     for (p,) in con.execute(f"SELECT payload FROM contract_events WHERE op='results' AND contract_id IN ('{ids}')").fetchall():
         v = orjson.loads(orjson.loads(p)["results"]["RESULTS"])[0]
         res = v if res is None else [a + b for a, b in zip(res, v)]
-    return dict(list=add - rem, issued=nb, votes=nv, results=res or [])
+    return dict(list=nl, issued=nb, votes=nv, results=res or [])
 
 
 def reconcile(con, nodes, reps):

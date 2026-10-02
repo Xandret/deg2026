@@ -63,7 +63,9 @@ def results_data(REPO):
         dn = r['district']; lines = L.get((dn, 1))
         d = sm.setdefault(dn, {'id': len(sm), 'region': r['region'], 'district': dn.split(' – ')[-1], 'full': dn,
                                'contracts': int(r['contracts']),
-                               'mapping': 'verified' if lines else ('exact' if r['mapping'] == 'exact' else 'recon'),
+                               # verified — ДЭГ сверен с официальным протоколом; oik — есть протокол ОИК, ДЭГ из журнала
+                               'mapping': ('oik' if 'журнал' in next(iter(lines.values()))[2] else 'verified') if lines
+                                          else ('exact' if r['mapping'] == 'exact' else 'recon'),
                                'source': (next(iter(lines.values()))[2] if lines else None), 'cands': []})
         pp = PARTY.get((dn, r['candidate']), ('', ''))
         d['cands'].append({'name': r['candidate'], 'party': pp[1], 'partyFull': pp[0], 'deg': int(r['deg_votes']), 'paper': None})
